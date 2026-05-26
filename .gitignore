@@ -1,0 +1,9 @@
+# Kaggle credentials
+.kaggle/
+
+# Local data artifacts
+data/raw/*.csv
+data/raw/*.zip
+data/raw/*.ipynb
+data/processed/*
+!data/processed/.gitkeep
