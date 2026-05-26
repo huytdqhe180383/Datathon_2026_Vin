@@ -2,30 +2,50 @@
 
 This repo combines two tracks of work for the competition:
 
-- A forecasting pipeline that produces `Revenue` and `COGS` submissions for the 548-day target horizon
-- A set of EDA and storytelling notebooks that turn the raw commerce tables into a presentation-ready business narrative
+
+Repo này kết hợp hai hướng phát triển chính cho cuộc thi:
+
+- Pipeline dự báo tạo ra file nộp kết quả `Revenue` và `COGS` cho 548 ngày mục tiêu
+- Bộ notebook EDA và storytelling giúp biến dữ liệu thương mại thô thành câu chuyện kinh doanh sẵn sàng trình bày
 
 ## What is in the repo
 
-- `data/raw/`: source competition files
-- `data/processed/`: placeholder for transformed datasets
-- `notebooks/`: EDA, baseline, and storytelling notebooks
-- `src/`: forecasting training and diagnostics scripts
-- `tests/`: unit tests for forecasting utilities
-- `reports/`: saved validation, model-selection, and diagnostics outputs
-- `submissions/`: generated submission CSVs
+
+## Thư mục và nội dung chính
+
+- `data/raw/`: dữ liệu gốc từ BTC
+- `data/processed/`: dữ liệu đã xử lý, biến đổi
+- `notebooks/`: các notebook EDA, baseline, storytelling
+- `src/`: mã huấn luyện dự báo và chẩn đoán
+- `tests/`: unit test cho các tiện ích dự báo
+- `reports/`: lưu kết quả validation, chọn mô hình, chẩn đoán
+- `submissions/`: các file CSV nộp kết quả
 
 ## Main files
 
-- `notebooks/data_storytelling.ipynb`: business-facing notebook with customer value, promo effectiveness, and return-risk analysis
-- `notebooks/eda_raw_data.ipynb`: raw data exploration
-- `notebooks/eda_task_focused.ipynb`: task-oriented EDA
-- `src/two_pass_forecast.py`: main training, evaluation, model selection, and submission export script
-- `src/analyze_forecast_failures.py`: diagnostics for horizon-level forecast errors
+
+## File quan trọng
+
+- `notebooks/data_storytelling.ipynb`: notebook trình bày phân tích giá trị khách hàng, hiệu quả khuyến mãi, rủi ro hoàn trả
+- `notebooks/eda_raw_data.ipynb`: khám phá dữ liệu thô
+- `notebooks/eda_task_focused.ipynb`: EDA theo từng bài toán
+- `src/two_pass_forecast.py`: script chính huấn luyện, đánh giá, chọn mô hình, xuất file nộp
+- `src/analyze_forecast_failures.py`: chẩn đoán lỗi dự báo theo từng horizon
 
 ## Environment setup
 
 Python 3.10+ is recommended.
+
+```bash
+python -m venv .venv
+.venv\Scripts\activate
+python -m pip install --upgrade pip
+python -m pip install numpy pandas matplotlib seaborn scikit-learn lightgbm nbconvert nbclient jupyter-core pytest
+```
+
+## Thiết lập môi trường
+
+Khuyến nghị dùng Python 3.10 trở lên.
 
 ```bash
 python -m venv .venv
@@ -42,11 +62,25 @@ From the repo root:
 python -m nbconvert --to notebook --execute --inplace notebooks/data_storytelling.ipynb
 ```
 
+## Chạy storytelling notebook
+
+Từ thư mục gốc repo:
+
+```bash
+python -m nbconvert --to notebook --execute --inplace notebooks/data_storytelling.ipynb
+```
+
 The notebook is structured as a narrative rather than a loose EDA dump. It now answers three business questions:
 
 1. Which customers drive the most value, and how concentrated is revenue?
 2. Are promotions creating healthy demand, and which traffic sources convert most efficiently?
 3. Which product categories and return reasons are creating the largest quality and refund risk?
+
+Notebook này được thiết kế theo dạng kể chuyện (storytelling), trả lời ba câu hỏi kinh doanh:
+
+1. Khách hàng nào mang lại giá trị lớn nhất, doanh thu tập trung ra sao?
+2. Khuyến mãi có tạo ra nhu cầu lành mạnh không, nguồn traffic nào chuyển đổi tốt nhất?
+3. Danh mục sản phẩm và lý do hoàn trả nào gây rủi ro chất lượng và hoàn tiền lớn nhất?
 
 The notebook writes charts and printed takeaways back into the same `.ipynb` file.
 
@@ -56,7 +90,16 @@ The notebook writes charts and printed takeaways back into the same `.ipynb` fil
 python src/two_pass_forecast.py --data-dir data/raw --out-dir submissions --report-dir reports
 ```
 
+## Chạy pipeline dự báo
+
+```bash
+python src/two_pass_forecast.py --data-dir data/raw --out-dir submissions --report-dir reports
+```
+
 Key outputs:
+
+
+Kết quả chính:
 
 - `submissions/submission_pass1.csv`
 - `submissions/submission_pass2.csv`
@@ -70,7 +113,15 @@ Key outputs:
 python src/analyze_forecast_failures.py
 ```
 
+## Chạy chẩn đoán lỗi dự báo
+
+```bash
+python src/analyze_forecast_failures.py
+```
+
 This writes error diagnostics to `reports/forecasting/diagnostics/`.
+
+Kết quả sẽ được ghi vào `reports/forecasting/diagnostics/`.
 
 ## Run tests
 
@@ -78,8 +129,17 @@ This writes error diagnostics to `reports/forecasting/diagnostics/`.
 pytest -q
 ```
 
+## Chạy kiểm thử (unit test)
+
+```bash
+pytest -q
+```
+
 ## Notes
 
-- The forecasting workflow uses a 548-day horizon by default.
-- Validation artifacts already stored under `reports/` can be used to compare candidate models without retraining immediately.
-- `data_storytelling.ipynb` is presentation-friendly and uses the real dataset schema rather than placeholder joins or assumed columns.
+
+## Ghi chú
+
+- Pipeline dự báo mặc định dùng horizon 548 ngày.
+- Có thể tận dụng các file validation lưu sẵn trong `reports/` để so sánh mô hình mà không cần huấn luyện lại ngay.
+- `data_storytelling.ipynb` thân thiện trình bày, dùng đúng schema dữ liệu thực tế, không giả định cột hoặc join placeholder.
