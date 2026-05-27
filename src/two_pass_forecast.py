@@ -19,10 +19,10 @@ SEED = 42
 LAGS = [1, 2, 3, 7, 14, 28, 30, 56, 90, 182, 365]
 ROLL_WINDOWS = [7, 14, 28, 56]
 DEFAULT_HORIZON_DAYS = 548
-DEFAULT_TUNE_CUTOFFS = ["2018-06-30", "2019-06-30", "2020-06-30"]
+DEFAULT_TUNE_CUTOFFS = ["2018-06-30", "2019-06-30", "2020-06-30", "2021-06-30"]
 DEFAULT_FINAL_HOLDOUT_CUTOFF = "2021-06-30"
 DEFAULT_KNOT1_GRID = ["2018-07-01", "2019-01-01", "2019-07-01", "2020-03-01"]
-DEFAULT_KNOT2_GRID = ["2021-07-01", "2022-01-01", "2022-07-01"]
+DEFAULT_KNOT2_GRID = ["2021-07-01", "2022-01-01", "2022-07-01", "2022-10-01", "2023-01-01"]
 DIRECT_HORIZON_BUCKETS = [
     ("h001_030", 1, 30),
     ("h031_180", 31, 180),
@@ -292,7 +292,7 @@ def make_direct_linear_estimator(model_kind: str) -> Pipeline:
     if model_kind == "ridge":
         estimator = Ridge(alpha=4.0)
     elif model_kind == "elasticnet":
-        estimator = ElasticNet(alpha=0.001, l1_ratio=0.1, max_iter=20000, random_state=SEED)
+        estimator = ElasticNet(alpha=0.1, l1_ratio=0.5, max_iter=20000, random_state=SEED)
     else:
         raise ValueError(f"Unsupported direct model kind: {model_kind}")
 
@@ -313,6 +313,7 @@ def reconstruct_from_seasonal_delta(
     hist = ensure_datetime_index(anchor_history.astype(float)).copy()
     future_ds = pd.to_datetime(pd.Series(future_dates)).sort_values()
     z_hat = pd.Series(seasonal_delta_log.values, index=pd.to_datetime(seasonal_delta_log.index)).sort_index()
+    growth = estimate_recent_growth_multiplier(anchor_history, lag_days=lag_days, lookback_days=90)
 
     preds: dict[pd.Timestamp, float] = {}
     for d in future_ds:
@@ -321,7 +322,7 @@ def reconstruct_from_seasonal_delta(
         if np.isnan(anchor_value):
             anchor_value = preds.get(anchor_date, np.nan)
         if np.isnan(anchor_value):
-            anchor_value = float(hist.iloc[-1])
+            anchor_value = float(hist.iloc[-1]) * growth
 
         pred_level = float(np.expm1(float(z_hat.loc[d]) + np.log1p(anchor_value)))
         preds[d] = max(0.0, pred_level)
@@ -434,6 +435,26 @@ def single_feature_row(
     for k, v in regime_row.items():
         row[k] = float(v)
 
+    row["days_since_knot2"] = max(0.0, float((d - regime.knot2).days))
+
+    vals_365 = [hist.get(d - pd.Timedelta(days=i), np.nan) for i in range(1, 365 + 1)]
+    vals_365_np = np.array(vals_365, dtype=float)
+    row["roll_mean_365"] = float(vals_365_np.mean()) if not np.isnan(vals_365_np).any() else np.nan
+
+    lag_365 = row.get("lag_365", np.nan)
+    roll_mean_28 = row.get("roll_mean_28", np.nan)
+    roll_mean_365 = row.get("roll_mean_365", np.nan)
+    row["yoy_growth_28d"] = (
+        roll_mean_28 / max(abs(lag_365), 1e-6)
+        if not np.isnan(roll_mean_28) and not np.isnan(lag_365)
+        else np.nan
+    )
+    row["momentum_ratio"] = (
+        roll_mean_28 / max(abs(roll_mean_365), 1e-6)
+        if not np.isnan(roll_mean_28) and not np.isnan(roll_mean_365)
+        else np.nan
+    )
+
     row["baseline"] = baseline_value
     row["baseline_minus_lag1"] = baseline_value - lag_1 if not np.isnan(lag_1) else np.nan
     return row
@@ -475,8 +496,17 @@ def build_residual_training_frame(
     return X, y_resid
 
 
-def build_sample_weights(dates: pd.Series) -> np.ndarray:
-    return np.ones(len(dates), dtype=float)
+def build_sample_weights(dates: pd.Series, lam: float = 3.0) -> np.ndarray:
+    ds = pd.to_datetime(pd.Series(dates))
+    if len(ds) == 0:
+        return np.array([], dtype=float)
+    t = (ds - ds.min()).dt.days.astype(float)
+    max_t = float(t.max()) if len(t) else 0.0
+    if max_t <= 0.0:
+        return np.ones(len(ds), dtype=float)
+    w = np.exp(float(lam) * t / max_t)
+    w = w / w.mean()
+    return w.to_numpy(dtype=float)
 
 
 def fit_lightgbm_residual_model(
@@ -740,14 +770,19 @@ def fit_core_models(
 ) -> tuple[pd.Series, TrendSeasonalForecaster, LGBMRegressor, list[str]]:
     train_df = sales[["Date", target_col]].copy().sort_values("Date")
     train_series = pd.Series(train_df[target_col].values, index=train_df["Date"])
-    pass1 = TrendSeasonalForecaster(alpha=2.0, regime=regime).fit(train_df["Date"], train_df[target_col])
+    pass1_weights = build_sample_weights(train_df["Date"])
+    pass1 = TrendSeasonalForecaster(alpha=2.0, regime=regime).fit(
+        train_df["Date"],
+        train_df[target_col],
+        sample_weight=pass1_weights,
+    )
     X_res, y_res, d_res = build_residual_training_frame(train_series, pass1, return_dates=True)
     residual_model = fit_lightgbm_residual_model(
         X=X_res,
         y=y_res,
         dates=d_res,
         residual_val_days=residual_val_days,
-        use_sample_weight=False,
+        use_sample_weight=True,
     )
     return train_series, pass1, residual_model, X_res.columns.tolist()
 
@@ -858,7 +893,12 @@ def evaluate_pass1_mae_for_regime(
         valid_df = df[(df["Date"] > cutoff) & (df["Date"] <= cutoff + pd.Timedelta(days=horizon_days))].copy()
         if len(train_df) < 730 or len(valid_df) < min(365, horizon_days):
             continue
-        pass1 = TrendSeasonalForecaster(alpha=2.0, regime=regime).fit(train_df["Date"], train_df[target_col])
+        pass1_weights = build_sample_weights(train_df["Date"])
+        pass1 = TrendSeasonalForecaster(alpha=2.0, regime=regime).fit(
+            train_df["Date"],
+            train_df[target_col],
+            sample_weight=pass1_weights,
+        )
         pred = pd.Series(pass1.predict(valid_df["Date"]), index=valid_df["Date"])
         y_valid = pd.Series(valid_df[target_col].values, index=valid_df["Date"])
         maes.append(float(mean_absolute_error(y_valid, pred)))

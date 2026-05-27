@@ -13,8 +13,9 @@ import two_pass_forecast as tpf
 
 def test_default_validation_protocol_matches_leaderboard_horizon():
     assert tpf.DEFAULT_HORIZON_DAYS == 548
-    assert tpf.DEFAULT_TUNE_CUTOFFS == ["2018-06-30", "2019-06-30", "2020-06-30"]
+    assert tpf.DEFAULT_TUNE_CUTOFFS == ["2018-06-30", "2019-06-30", "2020-06-30", "2021-06-30"]
     assert tpf.DEFAULT_FINAL_HOLDOUT_CUTOFF == "2021-06-30"
+    assert tpf.DEFAULT_KNOT2_GRID == ["2021-07-01", "2022-01-01", "2022-07-01", "2022-10-01", "2023-01-01"]
 
 
 def test_horizon_blend_schedule_becomes_more_conservative_later():
@@ -75,3 +76,12 @@ def test_seasonal_delta_reconstruction_uses_prior_predictions_after_day_365():
 
     assert np.isclose(pred.loc[pd.Timestamp("2023-01-01")], 100.0)
     assert np.isclose(pred.loc[pd.Timestamp("2024-01-01")], 201.0)
+
+
+def test_recency_sample_weights_increase_and_mean_normalize():
+    dates = pd.Series(pd.to_datetime(["2022-01-01", "2022-01-10", "2022-01-20"]))
+    w = tpf.build_sample_weights(dates, lam=3.0)
+
+    assert len(w) == 3
+    assert float(w[0]) < float(w[-1])
+    assert np.isclose(float(np.mean(w)), 1.0)
