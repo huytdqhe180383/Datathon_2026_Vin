@@ -1,0 +1,1735 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>E-Commerce Analytics — Pitch Deck</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- FontAwesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        :root {
+            --bg-dark: #070a13;
+            --bg-card: #0f1524;
+            --bg-card-hover: #161e33;
+            --surface: #1e293b;
+            --border: rgba(255, 255, 255, 0.06);
+            --border-glow: rgba(0, 242, 254, 0.2);
+            
+            --accent-primary: #00f2fe; /* Electric Cyan */
+            --accent-secondary: #c084fc; /* Lavender Purple */
+            --accent-alert: #f43f5e; /* Coral Red */
+            --accent-success: #10b981; /* Emerald Green */
+            --accent-warning: #f59e0b; /* Amber */
+            
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --text-dark: #64748b;
+            
+            --font-display: 'Inter', sans-serif;
+            --font-body: 'Inter', sans-serif;
+            --font-mono: 'JetBrains Mono', monospace;
+            
+            --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            --shadow-premium: 0 20px 40px -15px rgba(0, 0, 0, 0.8);
+            --shadow-glow: 0 0 30px rgba(0, 242, 254, 0.1);
+            --radius-lg: 16px;
+            --radius-md: 12px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html {
+            scroll-behavior: smooth;
+            background-color: var(--bg-dark);
+        }
+
+        body {
+            font-family: var(--font-body);
+            color: var(--text-main);
+            line-height: 1.7;
+            overflow-x: hidden;
+            background: radial-gradient(circle at 50% 0%, #11182c 0%, var(--bg-dark) 70%);
+        }
+
+        /* ========== TOP NAVIGATION ========== */
+        .nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            background: rgba(7, 10, 19, 0.85);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border);
+            padding: 0 3rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 70px;
+            transition: var(--transition-smooth);
+        }
+
+        .nav-logo {
+            font-family: var(--font-display);
+            font-weight: 800;
+            font-size: 1.25rem;
+            letter-spacing: -0.5px;
+            background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-secondary) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .nav-links a {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-family: var(--font-display);
+            font-size: 0.85rem;
+            font-weight: 500;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            transition: var(--transition-smooth);
+        }
+
+        .nav-links a:hover {
+            color: var(--text-main);
+            background: rgba(255, 255, 255, 0.03);
+        }
+
+        .nav-links a.active {
+            color: var(--text-main);
+            background: rgba(0, 242, 254, 0.08);
+            border: 1px solid rgba(0, 242, 254, 0.2);
+            box-shadow: var(--shadow-glow);
+        }
+
+        /* ========== HERO SECTION ========== */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 6rem 2rem 2rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            width: 700px;
+            height: 700px;
+            background: radial-gradient(circle, rgba(0, 242, 254, 0.05) 0%, transparent 70%);
+            top: -250px;
+            right: -100px;
+            pointer-events: none;
+        }
+
+        .hero-content {
+            text-align: center;
+            max-width: 950px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .hero-badge {
+            display: inline-block;
+            background: rgba(0, 242, 254, 0.08);
+            border: 1px solid rgba(0, 242, 254, 0.25);
+            color: var(--accent-primary);
+            font-family: var(--font-display);
+            font-size: 0.75rem;
+            font-weight: 600;
+            padding: 0.4rem 1.25rem;
+            border-radius: 100px;
+            margin-bottom: 1.5rem;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+        }
+
+        .hero h1 {
+            font-family: var(--font-display);
+            font-size: clamp(2.5rem, 5.5vw, 4.25rem);
+            font-weight: 800;
+            line-height: 1.15;
+            letter-spacing: -1.5px;
+            margin-bottom: 1.5rem;
+        }
+
+        .hero h1 .gradient {
+            background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-secondary) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero-subtitle {
+            font-size: 1.15rem;
+            color: var(--text-muted);
+            max-width: 700px;
+            margin: 0 auto 3rem;
+            line-height: 1.8;
+        }
+
+        /* ========== SECTIONS & GRIDS ========== */
+        .section {
+            padding: 6rem 2rem 4rem;
+            max-width: 1240px;
+            margin: 0 auto;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: 3.5rem;
+        }
+
+        .section-number {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            color: var(--bg-dark);
+            font-family: var(--font-display);
+            font-size: 0.7rem;
+            font-weight: 800;
+            padding: 0.3rem 1rem;
+            border-radius: 100px;
+            margin-bottom: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+        }
+
+        .section-title {
+            font-family: var(--font-display);
+            font-size: 2.25rem;
+            font-weight: 800;
+            letter-spacing: -1px;
+            margin-bottom: 1rem;
+        }
+
+        .section-desc {
+            font-size: 1rem;
+            color: var(--text-muted);
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        .content-grid {
+            display: grid;
+            grid-template-columns: 1.25fr 0.75fr;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .content-grid.equal {
+            grid-template-columns: 1fr 1fr;
+        }
+
+        .content-grid.full {
+            grid-template-columns: 1fr;
+        }
+
+        /* ========== GLASS CARDS ========== */
+        .card-premium {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 2rem;
+            box-shadow: var(--shadow-premium);
+            display: flex;
+            flex-direction: column;
+            gap: 1.25rem;
+            position: relative;
+            overflow: hidden;
+            transition: var(--transition-smooth);
+        }
+
+        .card-premium:hover {
+            border-color: var(--border-glow);
+            transform: translateY(-4px);
+            box-shadow: 0 20px 40px -15px rgba(0, 242, 254, 0.05), var(--shadow-premium);
+        }
+
+        .card-title {
+            font-family: var(--font-display);
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            padding-bottom: 0.85rem;
+        }
+
+        .card-title i {
+            color: var(--accent-primary);
+        }
+
+        /* ========== KPI PANEL ========== */
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .kpi-card {
+            background: rgba(255, 255, 255, 0.015);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            transition: var(--transition-smooth);
+        }
+
+        .kpi-card:hover {
+            border-color: rgba(0, 242, 254, 0.25);
+            transform: translateY(-2px);
+        }
+
+        .kpi-title {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            font-weight: 500;
+        }
+
+        .kpi-value {
+            font-family: var(--font-display);
+            font-size: 1.85rem;
+            font-weight: 700;
+        }
+
+        .kpi-value.cyan { color: var(--accent-primary); }
+        .kpi-value.purple { color: var(--accent-secondary); }
+        .kpi-value.rose { color: var(--accent-alert); }
+        .kpi-value.emerald { color: var(--accent-success); }
+
+        .kpi-desc {
+            font-size: 0.75rem;
+            color: var(--text-dark);
+        }
+
+        /* ========== TABLES ========== */
+        .table-responsive {
+            overflow-x: auto;
+            width: 100%;
+            border-radius: var(--radius-md);
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid var(--border);
+        }
+
+        table.premium-table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            font-size: 0.85rem;
+        }
+
+        table.premium-table th {
+            font-family: var(--font-display);
+            background: rgba(255, 255, 255, 0.03);
+            padding: 0.9rem 1.25rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+        }
+
+        table.premium-table td {
+            padding: 0.9rem 1.25rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+            color: var(--text-main);
+        }
+
+        table.premium-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        table.premium-table tr:hover td {
+            background: rgba(255, 255, 255, 0.015);
+        }
+
+        table.premium-table .num {
+            font-family: var(--font-mono);
+            font-size: 0.8rem;
+        }
+
+        .highlight-cell {
+            font-weight: 600;
+        }
+        .highlight-cell.success { color: var(--accent-success); }
+        .highlight-cell.alert { color: var(--accent-alert); }
+
+        /* ========== CHART BOX ========== */
+        .chart-box {
+            position: relative;
+            flex-grow: 1;
+            width: 100%;
+            min-height: 320px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* ========== METHODOLOGY & ACCORDION ========== */
+        .ds-deep-dive {
+            margin-top: 1rem;
+            border: 1px solid rgba(192, 132, 252, 0.2);
+            background: rgba(192, 132, 252, 0.015);
+            border-radius: var(--radius-md);
+            transition: var(--transition-smooth);
+        }
+
+        .ds-header {
+            padding: 1rem 1.5rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-family: var(--font-display);
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--accent-secondary);
+        }
+
+        .ds-header i {
+            transition: transform 0.3s;
+        }
+
+        .ds-deep-dive.open {
+            background: rgba(192, 132, 252, 0.035);
+            border-color: rgba(192, 132, 252, 0.35);
+        }
+
+        .ds-deep-dive.open .ds-header i {
+            transform: rotate(180deg);
+        }
+
+        .ds-content {
+            padding: 0 1.5rem 1.5rem;
+            display: none;
+            font-size: 0.85rem;
+            line-height: 1.6;
+            color: var(--text-muted);
+            border-top: 1px solid rgba(192, 132, 252, 0.1);
+            padding-top: 1.15rem;
+        }
+
+        .ds-content p {
+            margin-bottom: 0.75rem;
+        }
+
+        .ds-content ul {
+            padding-left: 1.25rem;
+            margin-bottom: 0.75rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.35rem;
+        }
+
+        .ds-content strong {
+            color: var(--text-main);
+        }
+
+        .ds-content code {
+            font-family: var(--font-mono);
+            background: rgba(255, 255, 255, 0.06);
+            padding: 0.15rem 0.35rem;
+            border-radius: 4px;
+            color: var(--accent-secondary);
+            font-size: 0.8rem;
+        }
+
+        /* ========== ACTION ALERTS ========== */
+        .action-alert {
+            display: flex;
+            gap: 0.85rem;
+            background: rgba(16, 185, 129, 0.04);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            border-radius: var(--radius-md);
+            padding: 1.15rem;
+            font-size: 0.875rem;
+            line-height: 1.5;
+        }
+
+        .action-alert i {
+            color: var(--accent-success);
+            font-size: 1.15rem;
+            margin-top: 0.1rem;
+        }
+
+        .action-title {
+            font-weight: 600;
+            color: var(--text-main);
+            margin-bottom: 0.25rem;
+            font-family: var(--font-display);
+        }
+
+        .action-desc {
+            color: var(--text-muted);
+        }
+
+        /* ========== CALLOUT BOXES ========== */
+        .callout {
+            background: rgba(255, 255, 255, 0.015);
+            border-left: 4px solid var(--accent-primary);
+            border-radius: 0 var(--radius-md) var(--radius-md) 0;
+            padding: 1.25rem 1.5rem;
+            margin: 1rem 0;
+            border-top: 1px solid var(--border);
+            border-right: 1px solid var(--border);
+            border-bottom: 1px solid var(--border);
+        }
+        
+        .callout.success { border-left-color: var(--accent-success); }
+        .callout.danger { border-left-color: var(--accent-alert); }
+        .callout.warn { border-left-color: var(--accent-warning); }
+
+        .callout-title {
+            font-family: var(--font-display);
+            font-weight: 700;
+            font-size: 0.85rem;
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+        }
+        .callout.success .callout-title { color: var(--accent-success); }
+        .callout.danger .callout-title { color: var(--accent-alert); }
+        .callout.warn .callout-title { color: var(--accent-warning); }
+        .callout p { color: var(--text-muted); font-size: 0.875rem; }
+
+        /* ========== PIPELINE FLOW ========== */
+        .pipeline {
+            display: flex;
+            align-items: stretch;
+            gap: 0;
+            margin: 2.5rem 0;
+            flex-wrap: wrap;
+        }
+
+        .pipeline-step {
+            flex: 1;
+            min-width: 220px;
+            background: rgba(255, 255, 255, 0.01);
+            border: 1px solid var(--border);
+            padding: 2rem 1.5rem;
+            text-align: center;
+            transition: var(--transition-smooth);
+        }
+
+        .pipeline-step:first-child { border-radius: var(--radius-lg) 0 0 var(--radius-lg); }
+        .pipeline-step:last-child { border-radius: 0 var(--radius-lg) var(--radius-lg) 0; }
+
+        .pipeline-step:hover {
+            background: rgba(255, 255, 255, 0.03);
+            transform: translateY(-4px);
+            border-color: rgba(0, 242, 254, 0.2);
+        }
+
+        .pipeline-step-num {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            color: var(--bg-dark);
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            font-family: var(--font-display);
+            font-size: 0.85rem;
+            font-weight: 800;
+            line-height: 32px;
+            margin-bottom: 1rem;
+        }
+
+        .pipeline-step h4 {
+            font-family: var(--font-display);
+            font-size: 0.95rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .pipeline-step p {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            line-height: 1.5;
+        }
+
+        /* ========== LIST INSIGHTS ========== */
+        .list-insights {
+            display: flex;
+            flex-direction: column;
+            gap: 0.85rem;
+        }
+
+        .insight-row {
+            display: flex;
+            gap: 0.75rem;
+            align-items: flex-start;
+        }
+
+        .insight-row i {
+            color: var(--accent-primary);
+            margin-top: 0.25rem;
+            font-size: 0.9rem;
+        }
+
+        .insight-row p {
+            font-size: 0.875rem;
+            line-height: 1.5;
+            color: var(--text-muted);
+        }
+
+        .insight-row strong {
+            color: var(--text-main);
+        }
+
+        /* ========== ACTION ITEMS ========== */
+        .action-item {
+            display: flex;
+            gap: 1.5rem;
+            align-items: flex-start;
+            padding: 1.5rem 0;
+            border-bottom: 1px solid var(--border);
+        }
+        .action-item:last-child {
+            border-bottom: none;
+        }
+
+        .action-priority {
+            flex-shrink: 0;
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: var(--font-display);
+            font-size: 0.85rem;
+            font-weight: 800;
+        }
+        .action-priority.p1 { background: rgba(244, 63, 94, 0.15); color: var(--accent-alert); }
+        .action-priority.p2 { background: rgba(245, 158, 11, 0.15); color: var(--accent-warning); }
+        .action-priority.p3 { background: rgba(0, 242, 254, 0.15); color: var(--accent-primary); }
+
+        .action-body h4 {
+            font-family: var(--font-display);
+            font-size: 1rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .action-body p {
+            color: var(--text-muted);
+            font-size: 0.875rem;
+            line-height: 1.6;
+            margin-bottom: 0.75rem;
+        }
+
+        .action-tag {
+            display: inline-block;
+            font-size: 0.65rem;
+            font-weight: 600;
+            padding: 0.2rem 0.65rem;
+            border-radius: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            margin-right: 0.5rem;
+        }
+        .action-tag.crm { background: rgba(0, 242, 254, 0.1); color: var(--accent-primary); }
+        .action-tag.marketing { background: rgba(245, 158, 11, 0.1); color: var(--accent-warning); }
+        .action-tag.ops { background: rgba(16, 185, 129, 0.1); color: var(--accent-success); }
+        .action-tag.product { background: rgba(192, 132, 252, 0.1); color: var(--accent-secondary); }
+
+        /* ========== DIVIDER ========== */
+        .divider {
+            width: 100%;
+            max-width: 1240px;
+            margin: 0 auto;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--border), transparent);
+        }
+
+        /* ========== FOOTER ========== */
+        .footer {
+            text-align: center;
+            padding: 4rem 2rem;
+            border-top: 1px solid var(--border);
+            color: var(--text-dark);
+            font-size: 0.8rem;
+            background: rgba(7, 10, 19, 0.5);
+        }
+
+        .footer code {
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        /* ========== RESPONSIVE ========== */
+        @media (max-width: 1024px) {
+            .content-grid {
+                grid-template-columns: 1fr;
+            }
+            .kpi-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .nav-links { display: none; }
+            .nav { padding: 0 1.5rem; }
+            .kpi-grid { grid-template-columns: 1fr; }
+            .pipeline { flex-direction: column; }
+            .pipeline-step { border-radius: var(--radius-md) !important; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ========== TOP NAVIGATION ========== -->
+    <nav class="nav" id="nav-top">
+        <div class="nav-logo"><i class="fa-solid fa-chart-line"></i> E-Commerce Analytics</div>
+        <div class="nav-links">
+            <a href="#overview" class="active">Tổng quan</a>
+            <a href="#segments">0. Core Customers</a>
+            <a href="#channels">1. Kênh &amp; Giữ chân</a>
+            <a href="#promo">2. Khuyến mãi</a>
+            <a href="#returns">3. Chất lượng &amp; Giữ chân</a>
+            <a href="#conclusion">Đề xuất & Lộ trình</a>
+        </div>
+    </nav>
+
+    <!-- ========== HERO SECTION (TỔNG QUAN) ========== -->
+    <section class="hero" id="overview">
+        <div class="hero-content">
+            <div class="hero-badge">Datathon 2026 — Storytelling Pitch</div>
+            <h1>
+                E-Commerce Analytics:<br>
+                <span class="gradient">Từ Dữ liệu đến Hành động</span>
+            </h1>
+            <p class="hero-subtitle">
+                Phân tích hành vi mua sắm dựa trên 10 năm dữ liệu giao dịch. Xác định phân khúc khách hàng cốt lõi bằng RFM, hiệu chỉnh các sai lệch trong đánh giá khuyến mãi, và đánh giá tác động của chất lượng vận hành lên tỷ lệ giữ chân khách hàng.
+            </p>
+            
+            <div class="kpi-grid">
+                <div class="kpi-card">
+                    <span class="kpi-title">Quy mô khách hàng</span>
+                    <span class="kpi-value cyan">90,246</span>
+                    <span class="kpi-desc">Tổng số khách hàng tích lũy</span>
+                </div>
+                <div class="kpi-card">
+                    <span class="kpi-title">Tổng doanh thu Net</span>
+                    <span class="kpi-value emerald">$15.68B</span>
+                    <span class="kpi-desc">Sau khi khấu trừ khuyến mãi</span>
+                </div>
+                <div class="kpi-card">
+                    <span class="kpi-title">Tỷ lệ Ngưng Hoạt Động</span>
+                    <span class="kpi-value rose">72.6%</span>
+                    <span class="kpi-desc">Khách có Recency > 365 ngày</span>
+                </div>
+                <div class="kpi-card">
+                    <span class="kpi-title">Thiệt hại hoàn trả</span>
+                    <span class="kpi-value purple">$510.6M</span>
+                    <span class="kpi-desc">Tổng số tiền hoàn (Refunds)</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ========== PIPELINE FLOW ========== -->
+    <div class="divider"></div>
+    <section class="section">
+        <div class="section-header">
+            <div class="section-number">Quy trình</div>
+            <h2 class="section-title">Khung cốt truyện phân tích</h2>
+            <p class="section-desc">Cấu trúc 4 chương liên kết chặt chẽ để trả lời tuần tự từ câu hỏi "Khách hàng của chúng ta là ai?" đến đề xuất hành động cụ thể.</p>
+        </div>
+        
+        <div class="pipeline">
+            <div class="pipeline-step">
+                <div class="pipeline-step-num">0</div>
+                <h4>Core Customers</h4>
+                <p>Phân nhóm RFM &amp; Phân tích Nhân khẩu học</p>
+            </div>
+            <div class="pipeline-step">
+                <div class="pipeline-step-num">1</div>
+                <h4>Kênh &amp; Giữ chân</h4>
+                <p>Rủi ro rời bỏ dựa trên Recency × Kênh Acquisition</p>
+            </div>
+            <div class="pipeline-step">
+                <div class="pipeline-step-num">2</div>
+                <h4>Hiệu quả Promo</h4>
+                <p>Matched-pair Analysis kiểm soát Selection Bias</p>
+            </div>
+            <div class="pipeline-step">
+                <div class="pipeline-step-num">3</div>
+                <h4>Chất lượng &amp; Giữ chân</h4>
+                <p>Tương quan sự cố đổi trả với hành vi ngưng mua</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ========== CHAPTER 0: CORE CUSTOMERS ========== -->
+    <div class="divider"></div>
+    <section class="section" id="segments">
+        <div class="section-header">
+            <div class="section-number">Chương 0</div>
+            <h2 class="section-title">Chân dung Khách hàng &amp; Phân khúc RFM</h2>
+            <p class="section-desc">Phân loại tập khách hàng theo hành vi giao dịch thực tế (Recency, Frequency, Monetary) thay vì chỉ sử dụng thông tin nhân khẩu học đơn thuần.</p>
+        </div>
+
+        <div class="content-grid">
+            <!-- Left: Chart -->
+            <div class="card-premium">
+                <div class="card-title">
+                    <i class="fa-solid fa-chart-pie"></i> Quy mô Phân khúc RFM &amp; Đóng góp Doanh thu Net
+                </div>
+                <div class="chart-box">
+                    <canvas id="chart-segments"></canvas>
+                </div>
+                <div style="font-size: 0.75rem; color: var(--text-dark); text-align: center;">
+                    * Champion: R_Score=4, F_Score &amp; M_Score >= 3 | Loyal: R_Score >= 3, F_Score >= 3 | At Risk / Churned: Recency > 365 ngày.
+                </div>
+            </div>
+ 
+            <!-- Right: Table & Summary -->
+            <div class="card-premium">
+                <div class="card-title">
+                    <i class="fa-solid fa-table"></i> Chi tiết các nhóm Phân khúc
+                </div>
+                <div class="table-responsive">
+                    <table class="premium-table">
+                        <thead>
+                            <tr>
+                                <th>Phân khúc</th>
+                                <th>Số khách</th>
+                                <th>Avg ARPU</th>
+                                <th>Doanh thu Net</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="highlight-cell" style="color: var(--accent-primary);">Champion</td>
+                                <td class="num">17,817</td>
+                                <td class="num">$408,889</td>
+                                <td class="highlight-cell num">$7.29B</td>
+                            </tr>
+                            <tr>
+                                <td class="highlight-cell" style="color: var(--accent-secondary);">Loyal</td>
+                                <td class="num">16,495</td>
+                                <td class="num">$259,629</td>
+                                <td class="highlight-cell num">$4.28B</td>
+                            </tr>
+                            <tr>
+                                <td class="highlight-cell" style="color: var(--accent-alert);">At Risk / Churned</td>
+                                <td class="num">51,666</td>
+                                <td class="num">$64,979</td>
+                                <td class="highlight-cell num">$3.36B</td>
+                            </tr>
+                            <tr>
+                                <td class="highlight-cell">Standard</td>
+                                <td class="num">4,268</td>
+                                <td class="num">$57,471</td>
+                                <td class="highlight-cell num">$245.3M</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="list-insights">
+                    <div class="insight-row">
+                        <i class="fa-solid fa-circle-check"></i>
+                        <p><strong>Nguồn thu cốt lõi:</strong> Phân khúc Champion và Loyal chỉ chiếm <strong>38% tổng số khách hàng</strong> nhưng đóng góp đến <strong>76.3% tổng doanh thu Net</strong> ($11.57B / $15.17B).</p>
+                    </div>
+                    <div class="insight-row">
+                        <i class="fa-solid fa-circle-exclamation"></i>
+                        <p><strong>Nhóm Standard (4.7%):</strong> Có giá trị ARPU thấp ($57k), là tập khách hàng ấm (active) nhưng tần suất mua thấp. Đây là đối tượng mục tiêu lý tưởng để chạy các chiến dịch kích thích tăng tần suất mua nhằm chuyển dịch họ sang nhóm Loyal.</p>
+                    </div>
+                </div>
+
+                <div class="action-alert">
+                    <i class="fa-solid fa-lightbulb"></i>
+                    <div>
+                        <div class="action-title">Hướng tiếp cận giữ chân (VIP CRM)</div>
+                        <div class="action-desc">Tập trung nguồn lực xây dựng đặc quyền phi tiền tệ (VIP loyalty club, early-access sản phẩm mới) cho Champion và Loyal để bảo vệ 76% doanh thu thay vì lạm dụng discount.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="content-grid equal">
+            <div class="card-premium">
+                <div class="card-title">
+                    <i class="fa-solid fa-users"></i> Phân bổ theo Nhóm tuổi khách hàng
+                </div>
+                <div class="table-responsive">
+                    <table class="premium-table">
+                        <thead>
+                            <tr>
+                                <th>Nhóm tuổi</th>
+                                <th>Số khách</th>
+                                <th>Đơn hàng</th>
+                                <th>Historical ARPU</th>
+                                <th>% Doanh thu</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="highlight-cell">25-34</td>
+                                <td class="num">26,802</td>
+                                <td class="num">190,622</td>
+                                <td class="num">$167,149</td>
+                                <td class="highlight-cell num">29.5%</td>
+                            </tr>
+                            <tr>
+                                <td class="highlight-cell">35-44</td>
+                                <td class="num">23,642</td>
+                                <td class="num">170,368</td>
+                                <td class="num">$168,709</td>
+                                <td class="highlight-cell num">26.3%</td>
+                            </tr>
+                            <tr>
+                                <td class="highlight-cell">45-54</td>
+                                <td class="num">17,193</td>
+                                <td class="num">124,138</td>
+                                <td class="num">$169,897</td>
+                                <td class="highlight-cell num">19.3%</td>
+                            </tr>
+                            <tr>
+                                <td class="highlight-cell">18-24</td>
+                                <td class="num">12,599</td>
+                                <td class="num">89,057</td>
+                                <td class="num">$165,379</td>
+                                <td class="highlight-cell num">13.7%</td>
+                            </tr>
+                            <tr>
+                                <td class="highlight-cell">55+</td>
+                                <td class="num">10,010</td>
+                                <td class="num">72,760</td>
+                                <td class="num">$169,538</td>
+                                <td class="highlight-cell num">11.2%</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="callout">
+                    <p>Historical ARPU giữa các nhóm tuổi dao động ổn định trong khoảng <strong>$165k - $170k</strong>. Sự chênh lệch doanh thu giữa các nhóm tuổi chủ yếu xuất phát từ <strong>quy mô số lượng khách hàng</strong> chứ không phải mức độ chi tiêu trung bình.</p>
+                </div>
+            </div>
+
+            <!-- Methodology Deep Dive -->
+            <div class="card-premium" style="justify-content: flex-start;">
+                <div class="card-title">
+                    <i class="fa-solid fa-code"></i> Phương pháp luận: Làm rõ các chỉ số & Phân khúc
+                </div>
+                <div style="font-size: 0.875rem; color: var(--text-muted); display: flex; flex-direction: column; gap: 0.75rem;">
+                    <p><strong>1. Phân biệt Historical ARPU vs. LTV:</strong> Chỉ số giá trị vòng đời ở đây được tính chính xác là <strong>Historical ARPU (Average Revenue Per User)</strong> thay vì Predictive LTV (đòi hỏi mô hình xác suất như <code>BG/NBD</code> và <code>Gamma-Gamma</code> để ước lượng giá trị tương lai).</p>
+                    
+                    <p><strong>2. Phân khúc RFM "At Risk / Churned" vs. Tỷ lệ Ngưng hoạt động thực tế (72.6%):</strong> 
+                        <ul>
+                            <li>Tập <strong>Ngưng hoạt động thực tế (72.6%)</strong> được đo lường tuyệt đối dựa trên điều kiện <code>Recency &gt; 365 ngày</code>.</li>
+                            <li>Phân khúc <strong>At Risk / Churned (57.2%)</strong> trong bảng RFM là nhóm được phân loại dựa trên phân vị tương đối (quartiles). Do đó, một số khách hàng có <code>Recency &gt; 365 ngày</code> vẫn được xếp vào nhóm "Loyal" nếu họ thuộc nhóm 25% mua hàng gần nhất (R_Score = 3) và có tần suất mua cao. Nhóm 57.2% này đóng vai trò là phân khúc mục tiêu ưu tiên cho các chiến dịch Marketing, không đại diện cho tổng quy mô khách hàng ngưng hoạt động thực tế.</li>
+                        </ul>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ========== CHAPTER 1: ACQUISITION & CHURN ========== -->
+    <div class="divider"></div>
+    <section class="section" id="channels">
+        <div class="section-header">
+            <div class="section-number">Chương 1</div>
+            <h2 class="section-title">Kênh thu hút &amp; Hiệu suất Giữ chân (Tỷ lệ Ngưng Hoạt Động)</h2>
+            <p class="section-desc">Đo lường tỷ lệ khách hàng ngưng hoạt động (>365 ngày) dựa trên khoảng thời gian ngưng giao dịch thực tế (Recency) của khách hàng theo từng kênh thu hút ban đầu.</p>
+        </div>
+
+        <div class="content-grid">
+            <!-- Left: Chart -->
+            <div class="card-premium">
+                <div class="card-title">
+                    <i class="fa-solid fa-chart-column"></i> So sánh song song: Historical ARPU vs. Tỷ lệ Ngưng Hoạt Động theo kênh
+                </div>
+                <div class="chart-box">
+                    <canvas id="chart-channels"></canvas>
+                </div>
+                <div style="font-size: 0.75rem; color: var(--text-dark); text-align: center;">
+                    * Trục trái (Cột): Average ARPU ($) | Trục phải (Đường): Tỷ lệ Ngưng Hoạt Động (%)
+                </div>
+            </div>
+
+            <!-- Right: Insights & Table -->
+            <div class="card-premium">
+                <div class="card-title">
+                    <i class="fa-solid fa-route"></i> Đánh giá hiệu suất kênh thu hút
+                </div>
+                <div class="table-responsive">
+                    <table class="premium-table">
+                        <thead>
+                            <tr>
+                                <th>Kênh thu hút</th>
+                                <th>Avg ARPU</th>
+                                <th>Tỷ lệ Ngưng Hoạt Động</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="highlight-cell">Social Media</td>
+                                <td class="num">$169,927</td>
+                                <td class="highlight-cell alert num">72.3%</td>
+                            </tr>
+                            <tr>
+                                <td class="highlight-cell">Organic Search</td>
+                                <td class="num">$169,052</td>
+                                <td class="highlight-cell alert num">72.5%</td>
+                            </tr>
+                            <tr>
+                                <td class="highlight-cell">Paid Search</td>
+                                <td class="num">$167,773</td>
+                                <td class="highlight-cell alert num">72.6%</td>
+                            </tr>
+                            <tr>
+                                <td class="highlight-cell">Email Campaign</td>
+                                <td class="num">$166,649</td>
+                                <td class="highlight-cell alert num">72.6%</td>
+                            </tr>
+                            <tr>
+                                <td class="highlight-cell">Referral</td>
+                                <td class="num">$166,468</td>
+                                <td class="highlight-cell alert num">73.0%</td>
+                            </tr>
+                            <tr>
+                                <td class="highlight-cell">Direct</td>
+                                <td class="num">$165,086</td>
+                                <td class="highlight-cell alert num">72.8%</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="list-insights">
+                    <div class="insight-row">
+                        <i class="fa-solid fa-circle-check"></i>
+                        <p><strong>Social Media mang lại ARPU cao nhất:</strong> Trung bình $169.9k/khách. Trong khi Direct có mức đóng góp thấp nhất ($165.1k/khách).</p>
+                    </div>
+                    <div class="insight-row">
+                        <i class="fa-solid fa-triangle-exclamation"></i>
+                        <p><strong>Mức độ ngưng hoạt động đồng đều:</strong> Tỷ lệ Ngưng Hoạt Động dao động quanh mức 72.3% - 73.0% ở tất cả các kênh (chênh lệch tối đa chỉ ~0.7%), cho thấy kênh thu hút ban đầu không tạo ra sự khác biệt lớn về khả năng giữ chân khách hàng dài hạn.</p>
+                    </div>
+                </div>
+
+                <div class="action-alert">
+                    <i class="fa-solid fa-bullseye"></i>
+                    <div>
+                        <div class="action-title">Hành động đề xuất (Marketing)</div>
+                        <div class="action-desc">Uu tiên dịch chuyển ngân sách quảng cáo sang kênh Social Media do có Historical ARPU vượt trội mà không làm gia tăng tỷ lệ ngưng hoạt động so với Paid Search.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Methodology Accordion -->
+        <div class="ds-deep-dive" id="dd-2">
+            <div class="ds-header" onclick="toggleDeepDive(2)">
+                <span><i class="fa-solid fa-code"></i> Thiết kế mô hình: Định nghĩa trạng thái Ngưng Hoạt Động dựa trên Recency và Khoảng tin cậy (95% CI)</span>
+                <i class="fa-solid fa-chevron-down"></i>
+            </div>
+            <div class="ds-content">
+                <p><strong>Thay đổi phương pháp luận cốt lõi:</strong> Chúng ta tuyệt đối không sử dụng tỷ lệ hoàn trả hàng (Returns) làm proxy cho Churn. Hoàn trả là sự cố vận hành; một khách hàng trả hàng vẫn có thể tiếp tục mua sắm trong tương lai. Thay vào đó, mô hình định nghĩa trạng thái <strong>Ngưng Hoạt Động (Churn Risk)</strong> dựa trên biến hành vi <code>Recency</code> (số ngày kể từ giao dịch cuối cùng). Khách hàng có <code>Recency > 365 ngày</code> được gắn nhãn là ngưng hoạt động.</p>
+                <p><strong>Loại bỏ nhiễu bằng Khoảng tin cậy:</strong> Để phân biệt tín hiệu thực tế (signal) với dao động ngẫu nhiên (noise), các so sánh ARPU giữa các kênh được đo lường cùng với <strong>Khoảng tin cậy 95% (95% CI)</strong> được tính bằng phương pháp bootstrap. Nếu khoảng CI của hai kênh chồng lấp lên nhau, sự khác biệt về mặt thống kê là không có ý nghĩa (p-value > 0.05).</p>
+                <p><strong>Định hướng Phase 2:</strong> Đề xuất áp dụng phân tích thời gian sống <strong>Survival Analysis (như mô hình Cox Proportional Hazards hoặc Kaplan-Meier)</strong> để ước lượng ngưỡng rời bỏ động theo từng danh mục hàng hóa thay vì sử dụng một ngưỡng 365 ngày cố định cho toàn bộ hệ thống.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ========== CHAPTER 2: PROMOTION EFFECTIVENESS ========== -->
+    <div class="divider"></div>
+    <section class="section" id="promo">
+        <div class="section-header">
+            <div class="section-number">Chương 2</div>
+            <h2 class="section-title">Khuyến mãi có tạo ra Incremental Lift hay chỉ bị Selection Bias?</h2>
+            <p class="section-desc">Phân tích tác động thực sự của khuyến mãi bằng phương pháp so sánh ghép cặp (Matched-Pair Analysis) để loại bỏ thiên lệch lựa chọn tự nhiên.</p>
+        </div>
+
+        <div class="content-grid">
+            <!-- Left: Chart -->
+            <div class="card-premium">
+                <div class="card-title">
+                    <i class="fa-solid fa-tags"></i> So sánh AOV sau chiết khấu (Net Revenue): Đơn hàng Có Promo vs Không Promo
+                </div>
+                <div class="chart-box">
+                    <canvas id="chart-promo"></canvas>
+                </div>
+                <div style="font-size: 0.75rem; color: var(--text-dark); text-align: center;">
+                    * Trực quan hóa giá trị đơn hàng trung bình (AOV) thực tế trong từng nhóm tần suất mua hàng (Frequency Buckets).
+                </div>
+            </div>
+
+            <!-- Right: Table & Insights -->
+            <div class="card-premium">
+                <div class="card-title">
+                    <i class="fa-solid fa-filter"></i> Bóc tách Selection Bias theo Tần suất
+                </div>
+                <div class="table-responsive">
+                    <table class="premium-table">
+                        <thead>
+                            <tr>
+                                <th>Tần suất mua</th>
+                                <th>Net AOV Lift (Sau chiết khấu)</th>
+                                <th>Gross AOV Lift (Trước chiết khấu)</th>
+                                <th>Quantity Lift (Số lượng sản phẩm)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="highlight-cell">1 Order</td>
+                                <td class="highlight-cell alert num">-31.2%</td>
+                                <td class="highlight-cell alert num">-20.2%</td>
+                                <td class="highlight-cell success num">+1.2%</td>
+                            </tr>
+                            <tr>
+                                <td class="highlight-cell">2-3 Orders</td>
+                                <td class="highlight-cell alert num">-32.0%</td>
+                                <td class="highlight-cell alert num">-21.2%</td>
+                                <td class="highlight-cell success num">+1.3%</td>
+                            </tr>
+                            <tr>
+                                <td class="highlight-cell">4-5 Orders</td>
+                                <td class="highlight-cell alert num">-31.2%</td>
+                                <td class="highlight-cell alert num">-20.3%</td>
+                                <td class="highlight-cell success num">+2.0%</td>
+                            </tr>
+                            <tr>
+                                <td class="highlight-cell">6+ Orders</td>
+                                <td class="highlight-cell alert num">-31.4%</td>
+                                <td class="highlight-cell alert num">-20.5%</td>
+                                <td class="highlight-cell success num">+1.3%</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="list-insights">
+                    <div class="insight-row">
+                        <i class="fa-solid fa-triangle-exclamation"></i>
+                        <p><strong>Hiệu ứng kích cầu số lượng cực kỳ yếu:</strong> Quantity Lift chỉ tăng rất nhẹ từ <strong>+1.2% đến +2.0%</strong>. Khách hàng không có xu hướng tăng số sản phẩm trong giỏ khi có mã giảm giá.</p>
+                    </div>
+                    <div class="insight-row">
+                        <i class="fa-solid fa-arrow-down" style="color: var(--accent-alert);"></i>
+                        <p><strong>Suy giảm giá trị giỏ hàng trước chiết khấu (Gross AOV):</strong> Gross AOV Lift âm <strong>-20% đến -21%</strong> một cách hệ thống. Khi sử dụng promo, khách hàng chủ động chọn mua các nhóm sản phẩm có giá trị thấp hơn.</p>
+                    </div>
+                    <div class="insight-row">
+                        <i class="fa-solid fa-arrows-spin" style="color: var(--accent-primary);"></i>
+                        <p><strong>Discount Dilution (Ăn mòn Margin):</strong> Sự kết hợp giữa việc chọn hàng rẻ hơn (-20% Gross) và lượng chiết khấu của coupon khiến doanh thu Net thực tế giảm mạnh <strong>~31%</strong>. Khuyến mãi đang cannibalize biên lợi nhuận nghiêm trọng.</p>
+                    </div>
+                </div>
+
+                <div class="action-alert" style="background: rgba(244, 63, 94, 0.04); border-color: rgba(244, 63, 94, 0.2);">
+                    <i class="fa-solid fa-triangle-exclamation" style="color: var(--accent-alert);"></i>
+                    <div>
+                        <div class="action-title" style="color: var(--text-main);">Tối ưu hóa chiến dịch Promo</div>
+                        <div class="action-desc">Hạn chế phát mã giảm giá đại trà cho nhóm khách VIP (Champions/Loyal) - những người vốn đã có sẵn ý định mua hàng. Thiết kế Promo hướng tới kích thích tập Standard tăng tần suất mua.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Methodology Accordion -->
+        <div class="ds-deep-dive" id="dd-3">
+            <div class="ds-header" onclick="toggleDeepDive(3)">
+                <span><i class="fa-solid fa-code"></i> Thiết kế mô hình: Bóc tách tác động qua Gross AOV và Quantity (Chứng minh Cannibalization)</span>
+                <i class="fa-solid fa-chevron-down"></i>
+            </div>
+            <div class="ds-content">
+                <p><strong>Lý giải về mặt thống kê:</strong> Khách hàng VIP có xu hướng đặt đơn hàng lớn, đồng thời họ cũng săn coupon nhiều nhất do tần suất tương tác cao. Nếu so sánh AOV gộp đơn giản, ta sẽ gặp <strong>Selection Bias (Thiên lệch lựa chọn)</strong> khiến Promo trông có vẻ thành công.</p>
+                <p><strong>Phân tích nhân quả sâu hơn (Gross vs. Qty):</strong> Để chứng minh khuyến mại có thực sự kích thích giỏ hàng hay chỉ ăn mòn biên lợi nhuận, chúng ta thực hiện matched-pair phân nhóm theo tần suất mua cho cả 3 chỉ số: Net Revenue, Gross Revenue (trước chiết khấu), và Quantity. Kết quả chỉ ra:</p>
+                <ul>
+                    <li>Quantity Lift chỉ tăng nhẹ ~1.5%, chứng minh giỏ hàng không hề được mở rộng về mặt số lượng sản phẩm.</li>
+                    <li>Gross AOV giảm mạnh ~20%, chứng minh khách hàng chỉ áp coupon cho các sản phẩm/đơn hàng có giá trị thấp, hoặc dịch chuyển sang mua đồ rẻ tiền hơn khi có mã giảm giá.</li>
+                </ul>
+                <p>Điều này củng cố kết luận khuyến mãi đang bị <strong>Discount Dilution</strong> (ăn mòn lợi nhuận mà không tạo ra bất kỳ Incremental Lift thực tế nào về quy mô giỏ hàng).</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ========== CHAPTER 3: RETURNS & QUALITY ========== -->
+    <div class="divider"></div>
+    <section class="section" id="returns">
+        <div class="section-header">
+            <div class="section-number">Chương 3</div>
+            <h2 class="section-title">Rò rỉ hoàn trả &amp; Tác động đến rủi ro Ngưng Hoạt Động (ở cấp độ đơn hàng)</h2>
+            <p class="section-desc">Chứng minh mối liên hệ giữa các sự cố vận hành/chất lượng sản phẩm (đổi trả) với tỷ lệ đơn hàng từ nhóm khách ngưng hoạt động.</p>
+        </div>
+
+        <div class="content-grid">
+            <!-- Left: Charts -->
+            <div class="card-premium">
+                <div class="card-title">
+                    <i class="fa-solid fa-rotate-left"></i> Ảnh hưởng của việc Hoàn trả đến tỷ lệ đơn hàng từ khách ngưng hoạt động &amp; Thất thoát theo Category
+                </div>
+                <div class="chart-box" style="flex-direction: column; gap: 1rem;">
+                    <div style="display: flex; width: 100%; height: 85%;">
+                        <div style="width: 40%; height: 100%;">
+                            <canvas id="chart-return-churn"></canvas>
+                        </div>
+                        <div style="width: 60%; height: 100%;">
+                            <canvas id="chart-return-categories"></canvas>
+                        </div>
+                    </div>
+                </div>
+                <div style="font-size: 0.75rem; color: var(--text-dark); text-align: center;">
+                    * Trái: So sánh tỷ lệ đơn hàng từ khách ngưng hoạt động (%) giữa nhóm có đổi trả và không đổi trả | Phải: Top các danh mục hàng bị hoàn tiền lớn nhất.
+                </div>
+            </div>
+
+            <!-- Right: Table & Insights -->
+            <div class="card-premium">
+                <div class="card-title">
+                    <i class="fa-solid fa-triangle-exclamation"></i> Rò rỉ doanh thu từ hoàn hàng
+                </div>
+                <div class="table-responsive">
+                    <table class="premium-table">
+                        <thead>
+                            <tr>
+                                <th>Danh mục (Category)</th>
+                                <th>Số lượng trả</th>
+                                <th>Tỷ lệ trả (Items)</th>
+                                <th>Số tiền hoàn</th>
+                                <th>Tỷ lệ Refund (Rev)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="highlight-cell" style="color: var(--accent-primary);">Streetwear</td>
+                                <td class="num">59,801</td>
+                                <td class="num">3.38%</td>
+                                <td class="highlight-cell alert num">$406.7M</td>
+                                <td class="num">3.10%</td>
+                            </tr>
+                            <tr>
+                                <td class="highlight-cell" style="color: var(--accent-secondary);">Outdoor</td>
+                                <td class="num">40,417</td>
+                                <td class="num">3.45%</td>
+                                <td class="highlight-cell alert num">$78.7M</td>
+                                <td class="num">3.16%</td>
+                            </tr>
+                            <tr>
+                                <td class="highlight-cell">Casual</td>
+                                <td class="num">3,499</td>
+                                <td class="num">3.26%</td>
+                                <td class="highlight-cell num">$14.0M</td>
+                                <td class="num">3.05%</td>
+                            </tr>
+                            <tr>
+                                <td class="highlight-cell">GenZ</td>
+                                <td class="num">5,869</td>
+                                <td class="num">3.52%</td>
+                                <td class="highlight-cell num">$11.1M</td>
+                                <td class="num">3.24%</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="list-insights">
+                    <div class="insight-row">
+                        <i class="fa-solid fa-circle-exclamation"></i>
+                        <p><strong>Thiên lệch Quy mô (Simpson's Paradox):</strong> Mặc dù Streetwear chiếm $406.7M tiền hoàn trả, thực tế tỷ lệ trả hàng của nó chỉ là <strong>3.38%</strong>, tương đương các danh mục khác như Outdoor (3.45%) và thấp hơn GenZ (3.52%). Thất thoát lớn thuần túy do quy mô doanh thu khổng lồ của ngành hàng này ($13.1B).</p>
+                    </div>
+                    <div class="insight-row">
+                        <i class="fa-solid fa-link"></i>
+                        <p><strong>Sự khác biệt không có ý nghĩa thống kê:</strong> Đơn hàng có hoàn trả có tỷ lệ ngưng hoạt động là 47.7% so với 47.4% ở nhóm không hoàn hàng. Khác biệt 0.3% này <strong>không có ý nghĩa thống kê (p-value = 0.31)</strong>, cho thấy sự cố hoàn trả đơn lẻ chưa ảnh hưởng đến hành vi ngưng hoạt động lâu dài.</p>
+                    </div>
+                </div>
+
+                <div class="action-alert">
+                    <i class="fa-solid fa-wrench"></i>
+                    <div>
+                        <div class="action-title">Hành động đề xuất (Tối ưu hóa Quy mô)</div>
+                        <div class="action-desc">Tỷ lệ hoàn trả tương đối đồng đều ở mức ~3.4% chỉ ra ma sát vận hành tự nhiên. Tuy nhiên, vì quy mô Streetwear rất lớn, chỉ cần tối ưu hóa nhẹ quy trình đổi trả hoặc mô tả size chart để giảm 0.2% tỷ lệ hoàn trả của Streetwear sẽ mang lại khoản tiết kiệm ròng hơn $25M.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Methodology Accordion -->
+        <div class="ds-deep-dive" id="dd-4">
+            <div class="ds-header" onclick="toggleDeepDive(4)">
+                <span><i class="fa-solid fa-code"></i> Thiết kế mô hình: Đánh giá ý nghĩa thống kê của mối quan hệ Returns - Ngưng Hoạt Động (Simpson's Paradox &amp; Aggregation Bias)</span>
+                <i class="fa-solid fa-chevron-down"></i>
+            </div>
+            <div class="ds-content">
+                <p><strong>Lý giải về mức nền 47.4% vs. 72.6%:</strong> Tỷ lệ ngưng hoạt động ở mức đơn hàng (47.4% - 47.7%) thấp hơn tỷ lệ ở cấp độ khách hàng (93.8%) do <strong>thiên lệch tích lũy (aggregation bias)</strong>. Khách hàng trung thành mua sắm nhiều lần (tần suất cao, ít churn) đóng góp nhiều đơn hàng hơn vào mẫu số, kéo tỷ lệ trung bình ở cấp đơn hàng xuống thấp.</p>
+                <p><strong>Thiếu ý nghĩa thống kê ở cấp đơn lẻ (Chi-Square test):</strong> Kiểm định Chi-Square cho thấy sự khác biệt 0.3% (47.7% vs 47.4%) hoàn toàn <strong>không có ý nghĩa thống kê (p-value = 0.31 > 0.05)</strong>. Do đó, chúng ta bác bỏ giả thuyết rằng hoàn trả đơn lẻ có tương quan trực tiếp với trạng thái ngưng hoạt động lâu dài của khách hàng. Đây là lưu ý rất quan trọng để tránh đưa ra quyết định sai lầm dựa trên biến động ngẫu nhiên.</p>
+                <p><strong>Ứng dụng kinh doanh:</strong> Mặc dù sự cố hoàn trả đơn lẻ chưa ảnh hưởng đến hành vi ngưng hoạt động lâu dài (p-value = 0.31), việc giảm tỷ lệ hoàn trả của Streetwear vẫn là ưu tiên hàng đầu để giảm thiểu tổn thất vận hành khổng lồ ($406.7M) do quy mô doanh thu quá lớn.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ========== CONCLUSION & ROADMAP ========== -->
+    <div class="divider"></div>
+    <section class="section" id="conclusion">
+        <div class="section-header">
+            <div class="section-number">Tổng kết</div>
+            <h2 class="section-title">Đề xuất Hành động &amp; Lộ trình Phát triển</h2>
+            <p class="section-desc">Kế hoạch hành động liên phòng ban được phân loại theo thứ tự ưu tiên và lộ trình nâng cấp kỹ thuật.</p>
+        </div>
+
+        <div class="content-grid equal">
+            <!-- Left: Business Actions -->
+            <div class="card-premium">
+                <div class="card-title">
+                    <i class="fa-solid fa-list-check"></i> Đề xuất Hành động Doanh nghiệp
+                </div>
+                
+                <div class="action-item">
+                    <div class="action-priority p1">P1</div>
+                    <div class="action-body">
+                        <h4>Giữ chân tập VIP bằng cơ chế CRM cá nhân hóa</h4>
+                        <p>38% khách hàng tạo ra 76% doanh thu. Tích hợp điểm RFM vào CRM để tự động kích hoạt chiến dịch win-back cá nhân hóa vào ngày thứ 60-75 (trước khi chạm mốc ngưng hoạt động 365 ngày).</p>
+                        <span class="action-tag crm">CRM</span>
+                        <span class="action-tag marketing">Marketing</span>
+                    </div>
+                </div>
+
+                <div class="action-item">
+                    <div class="action-priority p1">P1</div>
+                    <div class="action-body">
+                        <h4>Khắc phục điểm rò rỉ Streetwear &amp; Giảm Return Rate</h4>
+                        <p>Kiểm tra chất lượng và bảng size dòng Streetwear để giảm khoản thiệt hại $406M refund, đồng thời giảm thiểu ma sát đổi trả gây ức chế trải nghiệm mua sắm của khách.</p>
+                        <span class="action-tag ops">Operations</span>
+                        <span class="action-tag product">Product Quality</span>
+                    </div>
+                </div>
+
+                <div class="action-item">
+                    <div class="action-priority p2">P2</div>
+                    <div class="action-body">
+                        <h4>Thay đổi cơ chế khuyến mãi dựa trên phân tầng khách hàng</h4>
+                        <p>Dừng phát code giảm giá đại trà cho nhóm Champions/Loyal (giảm thiểu tình trạng ăn mòn margin). Dành ngân sách Promo hướng tới kích thích tập Standard tăng tần suất giao dịch.</p>
+                        <span class="action-tag marketing">Marketing</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right: Technical Roadmap -->
+            <div class="card-premium" style="border-color: rgba(192, 132, 252, 0.35); background: rgba(192, 132, 252, 0.015);">
+                <div class="card-title" style="color: var(--accent-secondary); border-bottom-color: rgba(192, 132, 252, 0.15);">
+                    <i class="fa-solid fa-stairs"></i> Lộ trình Kỹ thuật (Data Science Roadmap)
+                </div>
+
+                <div class="list-insights" style="gap: 1.25rem; margin-top: 0.5rem;">
+                    <div class="insight-row">
+                        <i class="fa-solid fa-compass-drafting" style="color: var(--accent-secondary);"></i>
+                        <p><strong>Predictive Customer Lifetime Value (CLV):</strong> Triển khai mô hình <code>BG/NBD</code> kết hợp <code>Gamma-Gamma</code> để ước lượng dòng tiền tương lai của từng khách hàng thay thế cho chỉ số Historical ARPU tĩnh hiện tại.</p>
+                    </div>
+                    <div class="insight-row">
+                        <i class="fa-solid fa-clock-rotate-left" style="color: var(--accent-secondary);"></i>
+                        <p><strong>Survival Analysis Churn Thresholds:</strong> Sử dụng các mô hình Survival Analysis (như Kaplan-Meier, Cox Proportional Hazards) để xác định ngưỡng rời bỏ động theo từng ngành hàng cụ thể thay vì dùng một mốc 365 ngày cố định.</p>
+                    </div>
+                    <div class="insight-row">
+                        <i class="fa-solid fa-vials" style="color: var(--accent-secondary);"></i>
+                        <p><strong>Causal Inference cho Promotion:</strong> Xây dựng mô hình <code>Propensity Score Matching (PSM)</code> nhằm đánh giá toàn diện hiệu quả thực sự của Promo trên dữ liệu lịch sử hoặc thiết lập hệ thống thử nghiệm ngẫu nhiên kiểm soát (A/B Test).</p>
+                    </div>
+                </div>
+
+                <div class="action-alert" style="background: rgba(192, 132, 252, 0.06); border: 1px solid rgba(192, 132, 252, 0.25); margin-top: auto;">
+                    <i class="fa-solid fa-comments" style="color: var(--accent-secondary);"></i>
+                    <div>
+                        <div class="action-title" style="color: var(--accent-secondary); font-family: var(--font-display);">Các chủ đề thảo luận gợi ý</div>
+                        <div class="action-desc" style="font-size: 0.775rem;">
+                            1. Cách xử lý ngoại lai (outliers) và chu kỳ mua hàng trong mô hình BG/NBD.<br>
+                            2. Giải pháp tích hợp điểm RFM động chạy hàng ngày vào CRM pipeline.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ========== FOOTER ========== -->
+    <footer class="footer">
+        <p>E-Commerce Data Storytelling — Pitch Presentation · Datathon 2026</p>
+        <p style="margin-top: 0.5rem; font-size: 0.75rem;">
+            Dữ liệu phân tích trích xuất từ <code>data_storytelling.ipynb</code> · Xử lý bằng <code>pandas</code> · Biểu đồ dựng bởi <code>Chart.js</code>
+        </p>
+    </footer>
+
+    <!-- ========== INTERACTIVE LOGIC & SCROLL HIGHLIGHT ========== -->
+    <script>
+        // Deep dive accordion toggle logic
+        function toggleDeepDive(id) {
+            const dd = document.getElementById(`dd-${id}`);
+            const content = dd.querySelector('.ds-content');
+            
+            if (dd.classList.contains('open')) {
+                dd.classList.remove('open');
+                content.style.display = 'none';
+            } else {
+                dd.classList.add('open');
+                content.style.display = 'block';
+            }
+        }
+
+        // Navigation Scroll Spy
+        document.addEventListener('DOMContentLoaded', () => {
+            const sections = document.querySelectorAll('section[id]');
+            const navLinks = document.querySelectorAll('.nav-links a');
+            
+            // Highlight active navigation link on scroll
+            window.addEventListener('scroll', () => {
+                let current = '';
+                sections.forEach(section => {
+                    const sectionTop = section.offsetTop - 120;
+                    if (window.scrollY >= sectionTop) {
+                        current = section.getAttribute('id');
+                    }
+                });
+                
+                navLinks.forEach(link => {
+                    link.classList.remove('active');
+                    if (link.getAttribute('href') === `#${current}`) {
+                        link.classList.add('active');
+                    }
+                });
+            });
+
+            // Smooth scroll anchor link offset handling
+            navLinks.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const targetId = this.getAttribute('href');
+                    const targetSection = document.querySelector(targetId);
+                    if (targetSection) {
+                        window.scrollTo({
+                            top: targetSection.offsetTop - 70,
+                            behavior: 'smooth'
+                        });
+                    }
+                });
+            });
+        });
+
+        // --- CHART.JS INITIALIZATION ---
+        
+        // Slide 1: RFM Segments Chart
+        const ctxSegments = document.getElementById('chart-segments').getContext('2d');
+        new Chart(ctxSegments, {
+            type: 'bar',
+            data: {
+                labels: ['Champion', 'Loyal', 'At Risk / Churned', 'Standard'],
+                datasets: [
+                    {
+                        label: 'Số lượng khách hàng (trục trái)',
+                        data: [17817, 16495, 51666, 4268],
+                        backgroundColor: 'rgba(0, 242, 254, 0.4)',
+                        borderColor: 'rgba(0, 242, 254, 1)',
+                        borderWidth: 2,
+                        borderRadius: 8,
+                        yAxisID: 'y'
+                    },
+                    {
+                        label: 'Doanh thu Net ($B, trục phải)',
+                        data: [7.29, 4.28, 3.36, 0.25],
+                        type: 'line',
+                        borderColor: '#c084fc',
+                        borderWidth: 3,
+                        pointBackgroundColor: '#c084fc',
+                        pointRadius: 6,
+                        yAxisID: 'y1',
+                        tension: 0.1
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        labels: { color: '#94a3b8', font: { family: 'Inter' } }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                let label = context.dataset.label || '';
+                                if (label) {
+                                    label += ': ';
+                                }
+                                if (context.datasetIndex === 0) {
+                                    label += context.raw.toLocaleString() + ' khách';
+                                } else {
+                                    label += '$' + context.raw + 'B';
+                                }
+                                return label;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        grid: { color: 'rgba(255, 255, 255, 0.04)' },
+                        ticks: { color: '#94a3b8', font: { family: 'Inter', weight: 500 } }
+                    },
+                    y: {
+                        type: 'linear',
+                        display: true,
+                        position: 'left',
+                        grid: { color: 'rgba(255, 255, 255, 0.04)' },
+                        ticks: { color: '#94a3b8' },
+                        title: { display: true, text: 'Số lượng khách hàng', color: '#94a3b8' }
+                    },
+                    y1: {
+                        type: 'linear',
+                        display: true,
+                        position: 'right',
+                        grid: { drawOnChartArea: false },
+                        ticks: { color: '#94a3b8' },
+                        title: { display: true, text: 'Doanh thu ($ tỷ)', color: '#94a3b8' }
+                    }
+                }
+            }
+        });
+
+        // Slide 2: Acquisition Channels Chart
+        const ctxChannels = document.getElementById('chart-channels').getContext('2d');
+        new Chart(ctxChannels, {
+            type: 'bar',
+            data: {
+                labels: ['Social Media', 'Organic Search', 'Paid Search', 'Email Campaign', 'Referral', 'Direct'],
+                datasets: [
+                    {
+                        label: 'Historical ARPU ($)',
+                        data: [169927, 169052, 167773, 166649, 166468, 165086],
+                        backgroundColor: [
+                            'rgba(0, 242, 254, 0.4)',
+                            'rgba(0, 242, 254, 0.35)',
+                            'rgba(0, 242, 254, 0.3)',
+                            'rgba(0, 242, 254, 0.25)',
+                            'rgba(0, 242, 254, 0.2)',
+                            'rgba(0, 242, 254, 0.15)'
+                        ],
+                        borderColor: 'rgba(0, 242, 254, 0.8)',
+                        borderWidth: 1.5,
+                        borderRadius: 6,
+                        yAxisID: 'y'
+                    },
+                    {
+                        label: 'Tỷ lệ Ngưng Hoạt Động (%)',
+                        data: [72.3, 72.5, 72.6, 72.6, 73.0, 72.8],
+                        type: 'line',
+                        borderColor: '#f43f5e',
+                        borderWidth: 2,
+                        pointBackgroundColor: '#f43f5e',
+                        pointRadius: 4,
+                        yAxisID: 'y1',
+                        tension: 0.1
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        labels: { color: '#94a3b8', font: { family: 'Inter' } }
+                    }
+                },
+                scales: {
+                    x: {
+                        grid: { color: 'rgba(255, 255, 255, 0.04)' },
+                        ticks: { color: '#94a3b8', font: { family: 'Inter' } }
+                    },
+                    y: {
+                        type: 'linear',
+                        display: true,
+                        position: 'left',
+                        min: 150000,
+                        max: 180000,
+                        grid: { color: 'rgba(255, 255, 255, 0.04)' },
+                        ticks: { 
+                            color: '#94a3b8',
+                            callback: function(value) { return '$' + value.toLocaleString(); }
+                        },
+                        title: { display: true, text: 'Avg ARPU ($)', color: '#94a3b8' }
+                    },
+                    y1: {
+                        type: 'linear',
+                        display: true,
+                        position: 'right',
+                        min: 70,
+                        max: 75,
+                        grid: { drawOnChartArea: false },
+                        ticks: { 
+                            color: '#94a3b8',
+                            callback: function(value) { return value + '%'; }
+                        },
+                        title: { display: true, text: 'Tỷ lệ Ngưng Hoạt Động (%)', color: '#94a3b8' }
+                    }
+                }
+            }
+        });
+
+        // Slide 3: Promotion Matched-Pair AOV Chart
+        const ctxPromo = document.getElementById('chart-promo').getContext('2d');
+        new Chart(ctxPromo, {
+            type: 'bar',
+            data: {
+                labels: ['1 Order', '2-3 Orders', '4-5 Orders', '6+ Orders'],
+                datasets: [
+                    {
+                        label: 'Không sử dụng Promo AOV ($)',
+                        data: [27250, 26805, 27169, 27689],
+                        backgroundColor: 'rgba(148, 163, 184, 0.3)',
+                        borderColor: 'rgba(148, 163, 184, 0.8)',
+                        borderWidth: 1.5,
+                        borderRadius: 6
+                    },
+                    {
+                        label: 'Có sử dụng Promo AOV ($)',
+                        data: [18758, 18219, 18681, 18985],
+                        backgroundColor: 'rgba(244, 63, 94, 0.4)',
+                        borderColor: 'rgba(244, 63, 94, 0.8)',
+                        borderWidth: 1.5,
+                        borderRadius: 6
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        labels: { color: '#94a3b8', font: { family: 'Inter' } }
+                    }
+                },
+                scales: {
+                    x: {
+                        grid: { color: 'rgba(255, 255, 255, 0.04)' },
+                        ticks: { color: '#94a3b8', font: { family: 'Inter' } }
+                    },
+                    y: {
+                        grid: { color: 'rgba(255, 255, 255, 0.04)' },
+                        ticks: { 
+                            color: '#94a3b8',
+                            callback: function(value) { return '$' + value.toLocaleString(); }
+                        },
+                        title: { display: true, text: 'Net Revenue per Order (AOV)', color: '#94a3b8' }
+                    }
+                }
+            }
+        });
+
+        // Slide 4: Left - Returns vs Ngưng Hoạt Động (Order level)
+        const ctxRetChurn = document.getElementById('chart-return-churn').getContext('2d');
+        new Chart(ctxRetChurn, {
+            type: 'bar',
+            data: {
+                labels: ['Không hoàn trả', 'Có hoàn trả'],
+                datasets: [
+                    {
+                        label: 'Tỷ lệ đơn hàng từ nhóm khách ngưng hoạt động (%)',
+                        data: [47.4, 47.7],
+                        backgroundColor: ['rgba(148, 163, 184, 0.3)', 'rgba(244, 63, 94, 0.4)'],
+                        borderColor: ['rgba(148, 163, 184, 0.8)', 'rgba(244, 63, 94, 0.8)'],
+                        borderWidth: 1.5,
+                        borderRadius: 6
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    x: {
+                        grid: { color: 'rgba(255, 255, 255, 0.04)' },
+                        ticks: { color: '#94a3b8', font: { family: 'Inter' } }
+                    },
+                    y: {
+                        min: 44,
+                        max: 50,
+                        grid: { color: 'rgba(255, 255, 255, 0.04)' },
+                        ticks: { 
+                            color: '#94a3b8',
+                            callback: function(value) { return value + '%'; }
+                        },
+                        title: { display: true, text: 'Tỷ lệ đơn hàng ngưng hoạt động (%)', color: '#94a3b8' }
+                    }
+                }
+            }
+        });
+
+        // Slide 4: Right - Return Category refund amounts
+        const ctxRetCat = document.getElementById('chart-return-categories').getContext('2d');
+        new Chart(ctxRetCat, {
+            type: 'bar',
+            data: {
+                labels: ['Streetwear', 'Outdoor', 'Casual', 'GenZ'],
+                datasets: [
+                    {
+                        label: 'Tổng tiền hoàn trả ($)',
+                        data: [406708249, 78717515, 14027094, 11145648],
+                        backgroundColor: 'rgba(192, 132, 252, 0.4)',
+                        borderColor: 'rgba(192, 132, 252, 0.8)',
+                        borderWidth: 1.5,
+                        borderRadius: 6
+                    }
+                ]
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    x: {
+                        grid: { color: 'rgba(255, 255, 255, 0.04)' },
+                        ticks: { 
+                            color: '#94a3b8',
+                            callback: function(value) { return '$' + (value / 1000000).toFixed(0) + 'M'; }
+                        },
+                        title: { display: true, text: 'Tiền hoàn trả', color: '#94a3b8' }
+                    },
+                    y: {
+                        grid: { color: 'rgba(255, 255, 255, 0.04)' },
+                        ticks: { color: '#94a3b8', font: { family: 'Inter' } }
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>

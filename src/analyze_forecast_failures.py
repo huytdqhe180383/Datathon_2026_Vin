@@ -27,11 +27,18 @@ def pass2_oracle_predict(
     feature_cols: list[str],
 ) -> pd.Series:
     full_hist = pd.concat([train_series, valid_true]).sort_index()
-    start_date = full_hist.index.min()
+    if baseline_model.start_date is None or baseline_model.regime is None:
+        raise ValueError("Baseline model must be fitted before oracle prediction.")
     preds: dict[pd.Timestamp, float] = {}
     for d in pd.to_datetime(valid_dates):
         base = float(baseline_model.predict([d])[0])
-        row = tpf.single_feature_row(full_hist, d, base, start_date)
+        row = tpf.single_feature_row(
+            history=full_hist,
+            current_date=d,
+            baseline_value=base,
+            start_date=baseline_model.start_date,
+            regime=baseline_model.regime,
+        )
         X = pd.DataFrame([row]).reindex(columns=feature_cols)
         for c in X.columns:
             if X[c].isna().any():
@@ -67,7 +74,8 @@ def run() -> None:
         y_train = pd.Series(train_df["Revenue"].values, index=train_df["Date"])
         y_valid = pd.Series(valid_df["Revenue"].values, index=valid_df["Date"])
 
-        pass1 = tpf.TrendSeasonalForecaster(alpha=2.0).fit(train_df["Date"], train_df["Revenue"])
+        regime = tpf.RegimeConfig(pd.Timestamp(tpf.DEFAULT_KNOT1), pd.Timestamp(tpf.DEFAULT_KNOT2))
+        pass1 = tpf.TrendSeasonalForecaster(alpha=2.0, regime=regime).fit(train_df["Date"], train_df["Revenue"])
         pass1_pred = pd.Series(pass1.predict(valid_df["Date"]), index=valid_df["Date"])
 
         X_res, y_res = tpf.build_residual_training_frame(y_train, pass1)
