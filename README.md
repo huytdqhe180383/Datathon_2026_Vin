@@ -85,3 +85,28 @@ pytest -q
 - Pipeline dự báo mặc định dùng horizon 548 ngày.
 - Có thể tận dụng các file validation lưu sẵn trong `reports/` để so sánh mô hình mà không cần huấn luyện lại ngay.
 - `data_storytelling.ipynb` thân thiện trình bày, dùng đúng schema dữ liệu thực tế, không giả định cột hoặc join placeholder.
+
+## Forecast Training (Single Model per Run)
+
+Architecture has been refactored so each algorithm trains in an isolated script.
+
+Run one model at a time:
+
+```bash
+python src/train_hybrid_regime_lgbm.py
+python src/train_trend_hinge.py
+python src/train_direct_ridge_seasonal_delta.py
+python src/train_direct_elasticnet_seasonal_delta.py
+```
+
+Compatibility entrypoint:
+
+```bash
+python src/two_pass_forecast.py --model hybrid_regime_lgbm
+```
+
+Supported `--model` values:
+- `hybrid_regime_lgbm`
+- `trend_hinge_ridge`
+- `direct_ridge_seasonal_delta`
+- `direct_elasticnet_seasonal_delta`

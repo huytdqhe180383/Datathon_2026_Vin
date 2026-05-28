@@ -55,6 +55,12 @@ order_value = (
     )
 )
 
+# Khau tru hoan tien (refund_amount) khoi net_revenue de ra doanh thu thuc te
+returns_summary = returns.groupby("order_id", as_index=False)["refund_amount"].sum()
+order_value = order_value.merge(returns_summary, on="order_id", how="left")
+order_value["refund_amount"] = order_value["refund_amount"].fillna(0.0)
+order_value["final_revenue"] = order_value["net_revenue"] - order_value["refund_amount"]
+
 orders_enriched = orders.merge(order_value, on="order_id", how="left")
 cols_to_merge = ["customer_id", "acquisition_channel", "age_group", "city"]
 orders_enriched = orders_enriched.merge(
@@ -71,14 +77,14 @@ rfm = (
     .agg(
         last_order_date=("order_date", "max"),
         Frequency=("order_id", "nunique"),
-        Historical_ARPU=("net_revenue", "sum")
+        Historical_ARPU=("final_revenue", "sum")
     )
 )
 rfm["Recency"] = (max_date - rfm["last_order_date"]).dt.days
 rfm["Historical_ARPU_per_order"] = rfm["Historical_ARPU"] / rfm["Frequency"]
 
-# Dinh nghia Churn Risk: Recency > 90 days
-rfm["Churn_Risk"] = rfm["Recency"] > 90
+# Dinh nghia Churn Risk: Recency > 365 days
+rfm["Churn_Risk"] = rfm["Recency"] > 365
 
 # RFM Scoring (1-4, 4 la tot nhat; Recency 4 = gan day nhat)
 rfm["R_Score"] = pd.qcut(rfm["Recency"], q=4, labels=[4, 3, 2, 1], duplicates='drop')
@@ -223,7 +229,7 @@ plt.show()
 [markdown]
 ## Chuong 1. Phan bo rui ro Churn & Hieu suat Kenh thu hut (Acquisition)
 
-**Muc dich:** Xem xet ty le khach hang co rui ro roi bo (Churn Risk = Recency > 90 days) o tung kenh Acquisition. Kenh nao mang lai ARPU tot *va* giu chan khach tot?
+**Muc dich:** Xem xet ty le khach hang co rui ro roi bo (Churn Risk = Recency > 365 days) o tung kenh Acquisition. Kenh nao mang lai ARPU tot *va* giu chan khach tot?
 
 - Bieu do ARPU su dung **95% Confidence Interval** (`errorbar='ci'`) de loai tru nhieu du lieu khi so sanh gia tri giua cac kenh.
 - Bieu do Churn Rate duoc tach rieng de tranh bi de label.
@@ -267,7 +273,7 @@ sns.barplot(
     legend=False,
     ax=ax,
 )
-ax.set_title("Ty le Churn Risk (>90 days) theo Kenh Acquisition", fontsize=16)
+ax.set_title("Ty le Churn Risk (>365 days) theo Kenh Acquisition", fontsize=16)
 ax.set_xlabel("Kenh Acquisition", fontsize=13)
 ax.set_ylabel("Churn Rate", fontsize=13)
 ax.tick_params(axis="x", rotation=25, labelsize=11)
@@ -432,31 +438,73 @@ plt.show()
 ---
 **Nhan dinh tu Chuong 2:** Phan tich matched-pair giup loai bo Selection Bias khi danh gia hieu qua khuyen mai. Bieu do faceted cung giup nhin ro xu huong chuyen doi cua tung kenh traffic ma khong bi chen chuc. Cau hoi cuoi cung: **nguyen nhan Churn that su nam o dau, va chat luong san pham co anh huong khong?**
 [markdown]
-## Chuong 3. Nguyen nhan Churn & Chat luong san pham
+## Chuong 3. Nguyen nhan Churn & Chat luong san pham (Kiem dinh Chi-Square & Simpson's Paradox)
 
-**Muc dich:** Vi Churn Risk duoc tinh tu hanh vi ngung mua (Recency > 90 ngay), chung ta co the kiem tra xem viec khach hang tra hang (Returns) co lam gia tang ty le Churn hay khong, va danh muc nao gay rui ro nay cao nhat.
+**Muc dich:** Vi Churn Risk duoc tinh tu hanh vi ngung mua (Recency > 365 ngay), chung ta se thuc hien kiem dinh thong ke de xac dinh xem lieu viec khach hang hoan tra hang (Returns) co lam tang ty le Churn hay khong. Ngoai ra, chung ta se phan tich ty le hoan tra tren so don mua theo danh muc de tranh mac phai **Simpson's Paradox** khi danh gia chat luong san pham.
 
-Day la cau hoi quan trong vi no ket noi giua **chat luong san pham** va **kha nang giu chan khach hang** — 2 yeu to quyet dinh loi nhuan dai han.
+Day la chuong quan trong nham bao dam **tinh nghiem ngat ve mat phuong phap luan** truoc khi dua ra cac de xuat hanh dong va quyet dinh dau tu.
 [code]
 # Loc orders co tra hang
 returns_summary = returns.groupby("order_id", as_index=False).agg(
     return_qty=("return_quantity", "sum"),
-    refund_amount=("refund_amount", "sum")
+    refund_sum_val=("refund_amount", "sum")
 )
 
 # Gan thong tin tra hang vao enriched orders
 orders_returns = orders_enriched.merge(returns_summary, on="order_id", how="left")
-orders_returns["has_return"] = orders_returns["refund_amount"].notna()
+orders_returns["has_return"] = orders_returns["order_id"].isin(returns["order_id"])
 
 # Gan them Churn risk cua khach hang
 orders_returns = orders_returns.merge(
     customers_rfm[["customer_id", "Churn_Risk"]], on="customer_id", how="left"
 )
 
-# Bieu do tac dong cua Return den Churn Risk
-fig, axes = plt.subplots(1, 2, figsize=(16, 6))
+# --- 1. KIEM DINH CHI-SQUARE CHO MOI QUAN HE RETURNS - CHURN RISK ---
+from scipy.stats import chi2_contingency
+contingency_table = pd.crosstab(orders_returns["has_return"], orders_returns["Churn_Risk"])
+chi2_stat, p_val, dof, expected = chi2_contingency(contingency_table)
 
-# Fix hue warning: map has_return to string label
+print("=== Contingency Table (has_return vs Churn_Risk) ===")
+print(contingency_table)
+print(f"Chi-Square Statistic: {chi2_stat:.4f}")
+print(f"p-value: {p_val:.4f}")
+
+# --- 2. TINH TOAN TY LE HOAN TRA THEO CATEGORY (ITEMS & REVENUE) ---
+# Tinh tong so luong san pham da dat mua va tong doanh thu thuc te theo tung category
+order_items_enriched = order_items.merge(products[["product_id", "category"]], on="product_id", how="left")
+total_ordered_qty = order_items_enriched.groupby("category")["quantity"].sum()
+total_rev = order_items_enriched.groupby("category")["net_revenue"].sum()
+
+# Tinh tong so luong san pham hoan tra va tong so tien refund theo tung category
+returns_enriched = returns.merge(products[["product_id", "category"]], on="product_id", how="left")
+total_returned_qty = returns_enriched.groupby("category")["return_quantity"].sum()
+total_refund = returns_enriched.groupby("category")["refund_amount"].sum()
+
+# Gop lai va tinh toan ty le
+category_metrics = pd.DataFrame({
+    "Ordered_Qty": total_ordered_qty,
+    "Returned_Qty": total_returned_qty,
+    "Revenue": total_rev,
+    "Refund_Amount": total_refund
+})
+category_metrics["Return_Rate"] = category_metrics["Returned_Qty"] / category_metrics["Ordered_Qty"]
+category_metrics["Refund_to_Rev_Ratio"] = category_metrics["Refund_Amount"] / category_metrics["Revenue"]
+category_metrics = category_metrics.sort_values("Refund_Amount", ascending=False)
+
+print("\n=== Category Return Metrics ===")
+display(category_metrics.style.format({
+    "Ordered_Qty": "{:,.0f}",
+    "Returned_Qty": "{:,.0f}",
+    "Revenue": "${:,.0f}",
+    "Refund_Amount": "${:,.0f}",
+    "Return_Rate": "{:.2%}",
+    "Refund_to_Rev_Ratio": "{:.2%}"
+}))
+
+# --- 3. VE BIEU DO ---
+fig, axes = plt.subplots(1, 2, figsize=(18, 7))
+
+# Plot 1: Tac dong cua hoan tra len Churn Risk (voi 95% CI)
 orders_returns["return_label"] = orders_returns["has_return"].map(
     {True: "Co hoan tra", False: "Khong hoan tra"}
 )
@@ -471,37 +519,41 @@ sns.barplot(
     errorbar=("ci", 95),
     order=["Khong hoan tra", "Co hoan tra"]
 )
-axes[0].set_title("Trai nghiem doi tra anh huong Churn Risk?", fontsize=16)
-axes[0].set_xlabel("Don hang co bi hoan tra?")
-axes[0].set_ylabel("Xac suat Churn cua khach hang do")
+axes[0].set_title(f"Don hang co bi hoan tra vs Churn Risk?\n(Chi-Square p-value = {p_val:.2f})", fontsize=15)
+axes[0].set_xlabel("Trang thai hoan tra cua don hang")
+axes[0].set_ylabel("Ty le khach hang ngung hoat dong")
+axes[0].yaxis.set_major_formatter(lambda x, pos: f"{x:.1%}")
 
-# Danh muc hoan tra lon nhat - fix hue warning
-category_returns = (
-    returns.merge(products[["product_id", "category"]], on="product_id", how="left")
-    .groupby("category", as_index=False)
-    .agg(
-        return_qty=("return_quantity", "sum"),
-        refund_amount=("refund_amount", "sum")
-    )
-).sort_values("refund_amount", ascending=False)
-
-cat_top6 = category_returns.head(6)
+# Plot 2: Ty le hoan tra thuc te theo Category (loai bo Simpson's Paradox)
+category_metrics_reset = category_metrics.reset_index()
 sns.barplot(
-    data=cat_top6,
-    x="refund_amount",
+    data=category_metrics_reset,
+    x="Return_Rate",
     y="category",
     hue="category",
     palette="rocket",
     legend=False,
     ax=axes[1]
 )
-axes[1].set_title("Top Danh muc Gay Ro ri Loi nhuan (Hoan tien)", fontsize=16)
-axes[1].set_xlabel("Tong tien hoan ($)")
+axes[1].xaxis.set_major_formatter(lambda x, pos: f"{x:.1%}")
+axes[1].set_title("Ty le hoan tra thuc te theo Category\n(Items Returned / Items Ordered)", fontsize=15)
+axes[1].set_xlabel("Ty le hoan tra (%)")
 axes[1].set_ylabel("Category")
 
 plt.tight_layout()
 plt.show()
 [markdown]
+### Nhan xet va Bien ho Thong ke Chuong 3:
+
+1. **Bao cao kiem dinh Returns vs. Churn Risk:**
+   - Đơn hàng có hoàn trả có tỷ lệ thuộc nhóm khách ngưng hoạt động là **47.7%**, so với **47.4%** ở nhóm không hoàn trả. Sự khác biệt chỉ là **0.3%**.
+   - Kiểm định Chi-Square cho giá trị **p-value = 0.31**, lớn hơn nhiều so với ngưỡng ý nghĩa 0.05. Do đó, **khong co su khac biet co y nghia thong ke** về tỷ lệ ngưng hoạt động lâu dài giữa các đơn hàng có và không có hoàn trả. Sự cố hoàn trả đơn lẻ chưa trực tiếp thúc đẩy khách hàng rời bỏ dịch vụ.
+   
+2. **Simpson's Paradox & Thien lech Quy mo trong hoan tra:**
+   - Nếu chỉ nhìn vào tổng số tiền hoàn trả, **Streetwear** đóng góp khoản thiệt hại khổng lồ **$406.7M** (chiếm ~80% toàn hệ thống).
+   - Tuy nhiên, khi đối chiếu tỷ lệ hoàn trả thực tế (`Returned_Qty / Ordered_Qty`), **Streetwear chỉ có tỷ lệ hoàn trả là 3.38%**, thấp hơn danh mục **GenZ (3.52%)** và **Outdoor (3.45%)**.
+   - Streetwear dẫn đầu về số tiền hoàn trả thuần túy do quy mô doanh thu khổng lồ của nó ($12.56B, chiếm hơn 80% toàn store). Đây là minh chứng rõ rệt cho **Simpson's Paradox (hoặc Quy mô thiên lệch)**. Streetwear không có dấu hiệu chất lượng sản phẩm kém hơn các dòng khác, nhưng do quy mô lớn, chỉ cần giảm nhẹ tỷ lệ hoàn trả tại đây sẽ đem lại hiệu quả tiết kiệm chi phí ròng rất lớn cho doanh nghiệp.
+
 ---
 ## Ket luan hanh dong
 
@@ -510,7 +562,7 @@ plt.show()
 | Insight | Hanh dong |
 |:--------|:---------|
 | Tap Champion/Loyal dong gop phan lon doanh thu | Xay dung chuong trinh loyalty rieng, early access san pham moi |
-| Nhom "At Risk/Churned" co Recency > 90 ngay | Chay chien dich win-back co nhan hoa (email/SMS) trong vong 60-90 ngay |
+| Nhom "At Risk/Churned" co Recency > 365 ngay | Chay chien dich win-back co nhan hoa (email/SMS) truoc moc 365 ngay |
 | RFM scoring cho phep phan loai dong (dynamic) | Tich hop RFM scoring vao CRM de auto-trigger cac campaign theo segment |
 
 ### 2. Khuyen mai can danh gia tren Incremental Lift (khong phai AOV gop)
@@ -521,19 +573,19 @@ plt.show()
 | Incremental Lift thuc te co the thap hon ky vong | Thu hep doi tuong nhan promo: uu tien nhom "Standard" can kich cau, khong phat code cho nhom da mua nhieu |
 | Cac kenh traffic co hieu suat chuyen doi khac nhau | Phan bo ngan sach theo `orders/1,000 sessions` thay vi chi nhin traffic volume |
 
-### 3. Phong ngua Churn bang cach giam rui ro hoan tra
+### 3. Phong ngua ton that van hanh bang cach giam rui ro hoan tra
 
 | Insight | Hanh dong |
 |:--------|:---------|
-| Khach trai qua hoan tra co xac suat Churn cao hon | Uu tien QC cac category top dau ve refund amount |
-| Mot so category co return rate va refund cao bat thuong | Kiem tra nguyen nhan goc: mo ta san pham sai, van de kich co, loi van chuyen |
-| Giam return rate = giam ro ri loi nhuan *va* giam Churn | Dau tu vao pre-purchase guidance (size chart, video review) cho cac category co van de |
+| Khac biet ve Churn o cap don hang co hoan tra khong co y nghia thong ke (p-value = 0.31) | Su co hoan tra don le chua lam khach roi bo immediately, nhung ma sat nay van can duoc han che de bao ve net revenue. |
+| Streetwear gay ro ri lon nhat ($406.7M refund) nhung do thien lech quy mo (Return rate thuc te chỉ 3.38%, thap hon GenZ va Outdoor) | Tap trung cai tien nhe size chart va mo ta san pham cua Streetwear (giam nhe 0.2% return rate giup tiet kiem rong hon $25M). Kiem tra chat luong san pham dong GenZ/Outdoor vi co return rate cao nhat. |
+| Giam return rate = tiet kiem truc tiep chi phi van hanh | Dau tu vao pre-purchase guidance (size chart chuan, video review thuc te, danh gia cua khach hang truoc). |
 
 ---
 
 > **Luu y ve phuong phap:**
 > - **Historical ARPU** la proxy, khong phai true LTV. De tinh LTV chinh xac, can mo hinh du phong nhu BG/NBD + Gamma-Gamma.
-> - **Churn Risk** dua tren nguong 90 ngay co dinh. Trong thuc te, nguong nay nen duoc tinh toan tu phan phoi Recency cua tung nganh hang cu the.
+> - **Churn Risk** dua tren nguong 365 ngay co dinh. Trong thuc te, nguong nay nen duoc tinh toan tu phan phoi Recency cua tung nganh hang cu the.
 > - **Matched-pair analysis** la buoc dau cua causal inference. De co ket qua chac chan hon, can thiet ke A/B test hoac su dung propensity score matching.
 
 Notebook nay phu hop de dung nhu mot ban ke chuyen du lieu o vong trinh bay: moi bieu do tra loi mot cau hoi quan tri, moi chuong dan den chuong tiep theo theo logic tu nhien.

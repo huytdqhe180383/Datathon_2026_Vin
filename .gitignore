@@ -7,3 +7,7 @@ data/raw/*.zip
 data/raw/*.ipynb
 data/processed/*
 !data/processed/.gitkeep
+
+# Presentation Pitch Plan
+pitch_plan/
+
