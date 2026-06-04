@@ -2,6 +2,9 @@
 .kaggle/
 .env
 .venv_pandasai310/
+.uv_cache/
+__pycache__/
+*.pyc
 .tmp_pg_check.log
 .tmp_pgdata_check/
 .tmp_sql_rag_agent_ui.err.log
@@ -17,6 +20,8 @@ logs/agent_traces/*.jsonl
 !logs/agent_traces/.gitkeep
 logs/postgres/*.log
 !logs/postgres/.gitkeep
+results/value_mismatch_rerun/
+reports/pandasai_query_trace.jsonl
 
 # Presentation Pitch Plan
 pitch_plan/

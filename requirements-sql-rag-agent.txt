@@ -1,0 +1,5 @@
+langgraph
+openai
+psycopg[binary]
+python-dotenv
+gradio<6
