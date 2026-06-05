@@ -11,6 +11,7 @@ def validate_sql(state: SQLAgentState, trace_writer: TraceWriter | None = None) 
             candidate,
             schema_context=state.get("schema_context", []),
             question_analysis=state.get("question_analysis", {}),
+            allowed_tables=state.get("allowed_tables", []),
         )
         for candidate in state.get("candidate_sql", [])
     ]

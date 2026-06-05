@@ -2,9 +2,12 @@
 .kaggle/
 .env
 .venv_pandasai310/
+.venv/
 .uv_cache/
+.cache/sql_rag_agent/
 __pycache__/
 *.pyc
+src/*.egg-info/
 .tmp_pg_check.log
 .tmp_pgdata_check/
 .tmp_sql_rag_agent_ui.err.log

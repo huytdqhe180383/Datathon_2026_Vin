@@ -9,6 +9,7 @@ for %%I in ("%SCRIPT_DIR%..") do set "REPO_ROOT=%%~fI"
 
 set "GRADIO_SERVER_PORT=%PORT%"
 
+rem Starts the UI with: uv run python -m sql_rag_agent.ui
 powershell -NoProfile -ExecutionPolicy Bypass -Command ^
   "$ErrorActionPreference = 'Stop';" ^
   "$port = [int]$env:GRADIO_SERVER_PORT;" ^
@@ -20,7 +21,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -Command ^
   "$outLog = Join-Path $repoRoot '.tmp_sql_rag_agent_ui.out.log';" ^
   "$errLog = Join-Path $repoRoot '.tmp_sql_rag_agent_ui.err.log';" ^
   "Remove-Item $outLog, $errLog -Force -ErrorAction SilentlyContinue;" ^
-  "$process = Start-Process -FilePath 'python' -ArgumentList '-m','sql_rag_agent.ui' -WorkingDirectory $repoRoot -RedirectStandardOutput $outLog -RedirectStandardError $errLog -WindowStyle Minimized -PassThru;" ^
+  "$process = Start-Process -FilePath 'uv' -ArgumentList 'run','python','-m','sql_rag_agent.ui' -WorkingDirectory $repoRoot -RedirectStandardOutput $outLog -RedirectStandardError $errLog -WindowStyle Minimized -PassThru;" ^
   "Start-Sleep -Seconds 5;" ^
   "$url = ('http://127.0.0.1:{0}' -f $port);" ^
   "Start-Process $url;" ^

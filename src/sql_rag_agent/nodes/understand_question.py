@@ -2,11 +2,33 @@ from __future__ import annotations
 
 from typing import Any
 
+from sql_rag_agent.llm import LLMProviderProtocol
 from sql_rag_agent.state import SQLAgentState
+from sql_rag_agent.tracing import TraceWriter
 
 
-def understand_question(state: SQLAgentState) -> SQLAgentState:
+def understand_question(
+    state: SQLAgentState,
+    llm_provider: LLMProviderProtocol | None = None,
+    trace_writer: TraceWriter | None = None,
+) -> SQLAgentState:
     question = state["question"].strip()
+    llm_analysis = _analyze_with_llm(question, llm_provider, trace_writer)
+    if llm_analysis is not None:
+        return {
+            **state,
+            "question_analysis": llm_analysis,
+            "errors": state.get("errors", []),
+        }
+
+    return {
+        **state,
+        "question_analysis": _keyword_analysis(question),
+        "errors": state.get("errors", []),
+    }
+
+
+def _keyword_analysis(question: str) -> dict[str, Any]:
     lowered = question.lower()
 
     question_type = "lookup"
@@ -68,15 +90,36 @@ def understand_question(state: SQLAgentState) -> SQLAgentState:
         ambiguities.append("last quarter depends on the current date")
 
     return {
-        **state,
-        "question_analysis": {
-            "question_type": question_type,
-            "expected_answer_type": expected_answer_type,
-            "requires_time_filter": requires_time_filter,
-            "requires_join": requires_join,
-            "requires_metric_definition": requires_metric_definition,
-            "ambiguities": ambiguities,
-        },
-        "errors": state.get("errors", []),
+        "question_type": question_type,
+        "expected_answer_type": expected_answer_type,
+        "requires_time_filter": requires_time_filter,
+        "requires_join": requires_join,
+        "requires_metric_definition": requires_metric_definition,
+        "ambiguities": ambiguities,
     }
 
+
+def _analyze_with_llm(
+    question: str,
+    llm_provider: LLMProviderProtocol | None,
+    trace_writer: TraceWriter | None,
+) -> dict[str, Any] | None:
+    if llm_provider is None:
+        return None
+
+    try:
+        analysis = llm_provider.analyze_question(question=question)
+    except Exception as exc:
+        if trace_writer:
+            trace_writer.write("llm_understand_question_error", {"error": str(exc)})
+        return None
+
+    if analysis and trace_writer:
+        trace_writer.write(
+            "llm_understand_question",
+            {
+                "question": question,
+                "analysis": analysis,
+            },
+        )
+    return analysis

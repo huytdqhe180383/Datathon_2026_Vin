@@ -13,7 +13,8 @@ DEFAULT_ENV_FILE = ROOT / ".env"
 class LLMConfig:
     api_key: str | None = None
     base_url: str | None = None
-    model: str = "gpt-4o-mini"
+    strong_model: str = "gpt-4o-mini"
+    weak_model: str = "gpt-4o-mini"
     enabled: bool = True
 
     @classmethod
@@ -28,12 +29,17 @@ class LLMConfig:
         return cls(
             api_key=os.getenv("OPENAI_API_KEY") or dotenv_config.get("OPENAI_API_KEY"),
             base_url=os.getenv("OPENAI_API_BASE") or dotenv_config.get("OPENAI_API_BASE"),
-            model=(
-                os.getenv("SQL_AGENT_LLM_MODEL")
-                or dotenv_config.get("SQL_AGENT_LLM_MODEL")
-                or os.getenv("OPENAI_MODEL")
-                or dotenv_config.get("OPENAI_MODEL")
-                or "gpt-5.4-nano"
+            strong_model=_resolve_model_name(
+                env=os.getenv,
+                dotenv_config=dotenv_config,
+                primary_keys=("SQL_AGENT_LLM_STRONG_MODEL", "SQL_AGENT_LLM_MODEL", "OPENAI_MODEL"),
+                default="gpt-5.4-nano",
+            ),
+            weak_model=_resolve_model_name(
+                env=os.getenv,
+                dotenv_config=dotenv_config,
+                primary_keys=("SQL_AGENT_LLM_WEAK_MODEL", "SQL_AGENT_ANSWER_LLM_MODEL", "OPENAI_MODEL"),
+                default="gpt-5.4-nano",
             ),
             enabled=enabled_value.lower() not in {"0", "false", "no", "off"},
         )
@@ -75,5 +81,55 @@ class DatabaseConfig:
         return kwargs
 
 
+@dataclass(frozen=True)
+class SchemaRetrievalConfig:
+    enabled: bool = True
+    index_dir: Path = ROOT / ".cache" / "sql_rag_agent" / "schema_index"
+    docs_dir: Path = ROOT / "docs" / "schema_context"
+    top_k: int = 8
+    embedding_model: str = "text-embedding-3-small"
+    api_key: str | None = None
+    base_url: str | None = None
+
+    @classmethod
+    def from_env(cls, env_file: str | Path | None = None) -> "SchemaRetrievalConfig":
+        env_path = Path(env_file) if env_file is not None else DEFAULT_ENV_FILE
+        dotenv_config = dotenv_values(env_path) if env_path.exists() else {}
+        enabled_value = (
+            os.getenv("SQL_AGENT_SCHEMA_RETRIEVAL_ENABLED")
+            or dotenv_config.get("SQL_AGENT_SCHEMA_RETRIEVAL_ENABLED")
+            or "true"
+        )
+        return cls(
+            enabled=enabled_value.lower() not in {"0", "false", "no", "off"},
+            index_dir=Path(
+                os.getenv("SQL_AGENT_SCHEMA_INDEX_DIR")
+                or dotenv_config.get("SQL_AGENT_SCHEMA_INDEX_DIR")
+                or ROOT / ".cache" / "sql_rag_agent" / "schema_index"
+            ),
+            docs_dir=Path(
+                os.getenv("SQL_AGENT_SCHEMA_DOCS_DIR")
+                or dotenv_config.get("SQL_AGENT_SCHEMA_DOCS_DIR")
+                or ROOT / "docs" / "schema_context"
+            ),
+            top_k=int(os.getenv("SQL_AGENT_RETRIEVAL_TOP_K") or dotenv_config.get("SQL_AGENT_RETRIEVAL_TOP_K") or "8"),
+            embedding_model=(
+                os.getenv("SQL_AGENT_EMBEDDING_MODEL")
+                or dotenv_config.get("SQL_AGENT_EMBEDDING_MODEL")
+                or "text-embedding-3-small"
+            ),
+            api_key=os.getenv("OPENAI_API_KEY") or dotenv_config.get("OPENAI_API_KEY"),
+            base_url=os.getenv("OPENAI_API_BASE") or dotenv_config.get("OPENAI_API_BASE"),
+        )
+
+
 DEFAULT_ROW_LIMIT = 100
 DEFAULT_STATEMENT_TIMEOUT_MS = 5000
+
+
+def _resolve_model_name(*, env, dotenv_config: dict[str, str | None], primary_keys: tuple[str, ...], default: str) -> str:
+    for key in primary_keys:
+        value = env(key) or dotenv_config.get(key)
+        if value:
+            return value
+    return default

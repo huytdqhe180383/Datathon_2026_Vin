@@ -1,0 +1,26 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "datathon-2026-sql-rag-agent"
+version = "0.2.0"
+description = "Datathon 2026 PostgreSQL SQL RAG agent"
+requires-python = ">=3.10"
+dependencies = [
+    "gradio<6",
+    "langgraph",
+    "llama-index-core",
+    "llama-index-embeddings-openai",
+    "openai",
+    "psycopg[binary]",
+    "python-dotenv",
+]
+
+[dependency-groups]
+dev = [
+    "pytest",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]

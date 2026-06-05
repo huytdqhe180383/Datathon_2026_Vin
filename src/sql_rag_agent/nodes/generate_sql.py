@@ -22,7 +22,22 @@ def generate_sql(
     if llm_candidate is not None:
         return {**state, "candidate_sql": [llm_candidate]}
 
-    if "revenue" in question and "product" in question and {"core.orders", "core.order_items", "core.products"}.issubset(set(selected_tables)):
+    requires_product_revenue_tables = "revenue" in question and "product" in question
+    requires_refund_tables = _is_refund_customer_count_question(question)
+
+    if requires_product_revenue_tables and not {"core.orders", "core.order_items", "core.products"}.issubset(set(selected_tables)):
+        return _unsupported_question_state(
+            state,
+            "No phase-1 SQL pattern matched because the selected tables do not include core.orders, core.order_items, and core.products.",
+        )
+
+    if requires_refund_tables and not {"core.returns", "core.order_items", "core.orders"}.issubset(set(selected_tables)):
+        return _unsupported_question_state(
+            state,
+            "No phase-1 SQL pattern matched because the selected tables do not include core.returns, core.order_items, and core.orders.",
+        )
+
+    if requires_product_revenue_tables and {"core.orders", "core.order_items", "core.products"}.issubset(set(selected_tables)):
         start_date, end_date, time_summary = _date_bounds_for_question(question, current)
         where_parts = [
             "o.order_date >= DATE '{start}'".format(start=start_date.isoformat()),
@@ -49,7 +64,7 @@ def generate_sql(
             "expected_result_shape": ["product_name", "revenue"],
             "filters": where_parts,
         }
-    elif _is_refund_customer_count_question(question) and {"core.returns", "core.order_items", "core.orders"}.issubset(set(selected_tables)):
+    elif requires_refund_tables and {"core.returns", "core.order_items", "core.orders"}.issubset(set(selected_tables)):
         start_date, end_date, time_summary = _date_bounds_for_question(question, current)
         where_parts = [
             f"r.return_date >= DATE '{start_date.isoformat()}'",
@@ -97,20 +112,24 @@ def generate_sql(
             "filters": [],
         }
     else:
-        errors = list(state.get("errors", []))
-        errors.append(
-            {
-                "node": "generate_sql",
-                "code": "unsupported_question",
-                "message": (
-                    "No phase-1 SQL pattern matched this question. "
-                    "Ask about supported ecommerce metrics such as customers, refunds, or revenue."
-                ),
-            }
+        return _unsupported_question_state(
+            state,
+            "No phase-1 SQL pattern matched this question. Ask about supported ecommerce metrics such as customers, refunds, or revenue.",
         )
-        return {**state, "candidate_sql": [], "errors": errors}
 
     return {**state, "candidate_sql": [candidate]}
+
+
+def _unsupported_question_state(state: SQLAgentState, message: str) -> SQLAgentState:
+    errors = list(state.get("errors", []))
+    errors.append(
+        {
+            "node": "generate_sql",
+            "code": "unsupported_question",
+            "message": message,
+        }
+    )
+    return {**state, "candidate_sql": [], "errors": errors}
 
 
 def _generate_with_llm(
@@ -122,6 +141,16 @@ def _generate_with_llm(
         return None
 
     try:
+        candidate = llm_provider.generate_sql_candidate(
+            question=state["question"],
+            question_analysis=state.get("question_analysis", {}),
+            schema_context=state.get("schema_context", []),
+            selected_tables=state.get("selected_tables", []),
+            retrieved_context=state.get("retrieved_context", []),
+        )
+    except TypeError as exc:
+        if "retrieved_context" not in str(exc):
+            raise
         candidate = llm_provider.generate_sql_candidate(
             question=state["question"],
             question_analysis=state.get("question_analysis", {}),
@@ -139,6 +168,7 @@ def _generate_with_llm(
             {
                 "question": state["question"],
                 "selected_tables": state.get("selected_tables", []),
+                "retrieved_context": state.get("retrieved_context", []),
                 "candidate": candidate,
             },
         )

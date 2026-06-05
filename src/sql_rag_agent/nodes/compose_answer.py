@@ -102,6 +102,12 @@ def _compose_with_llm(
 
 
 def _no_result_answer(state: SQLAgentState) -> str:
+    selected_scope_codes = {"unsupported_question", "table_outside_allowed_scope"}
+    if state.get("allowed_tables") and any(error.get("code") in selected_scope_codes for error in state.get("errors", [])):
+        return (
+            "I could not answer using only the selected tables. "
+            "Choose tables that contain the needed fields, or clear the table filter."
+        )
     if any(error.get("code") == "unsupported_question" for error in state.get("errors", [])):
         return (
             "I do not have enough information to answer that as a SQL question yet. "

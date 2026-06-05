@@ -26,10 +26,25 @@ def inspect_schema(
 ) -> SQLAgentState:
     tool = mcp_tool or PostgresMCPTool()
     available_tables = tool.list_tables()
-    selected_tables = _select_tables(state["question"], available_tables)
+    allowed_tables = state.get("allowed_tables", [])
+    constrained_tables = _constrain_tables(available_tables, allowed_tables)
+    selected_tables = _select_tables(
+        state["question"],
+        constrained_tables,
+        retrieved_context=state.get("retrieved_context", []),
+    )
     schema_context: list[dict[str, Any]] = []
 
     errors = list(state.get("errors", []))
+    if allowed_tables and not constrained_tables:
+        errors.append(
+            {
+                "node": "inspect_schema",
+                "code": "no_selected_tables_available",
+                "message": "None of the selected tables are available in the connected database.",
+            }
+        )
+
     for table_name in selected_tables:
         try:
             schema_context.append(tool.describe_table(table_name))
@@ -50,7 +65,34 @@ def inspect_schema(
     }
 
 
-def _select_tables(question: str, available_tables: list[str]) -> list[str]:
+def _constrain_tables(available_tables: list[str], allowed_tables: list[str]) -> list[str]:
+    if not allowed_tables:
+        return available_tables
+    allowed = set(allowed_tables)
+    return [table for table in available_tables if table in allowed]
+
+
+def _select_tables(
+    question: str,
+    available_tables: list[str],
+    retrieved_context: list[dict[str, Any]] | None = None,
+) -> list[str]:
+    if not available_tables:
+        return []
+
+    context_tables = _tables_from_retrieved_context(retrieved_context or [], available_tables)
+    if context_tables:
+        selected = list(dict.fromkeys(context_tables))
+        keyword_selected = _keyword_selected_tables(question, available_tables)
+        for table_name in keyword_selected:
+            if table_name not in selected:
+                selected.append(table_name)
+        return selected[:6]
+
+    return _keyword_selected_tables(question, available_tables)
+
+
+def _keyword_selected_tables(question: str, available_tables: list[str]) -> list[str]:
     lowered = question.lower()
     scores: dict[str, int] = {}
     for table_name in available_tables:
@@ -73,3 +115,16 @@ def _select_tables(question: str, available_tables: list[str]) -> list[str]:
     preferred_fallback = ["core.orders", "core.order_items", "core.products", "mart.sales_daily"]
     fallback = [table for table in preferred_fallback if table in available_tables]
     return fallback or available_tables[:3]
+
+
+def _tables_from_retrieved_context(
+    retrieved_context: list[dict[str, Any]],
+    available_tables: list[str],
+) -> list[str]:
+    available = set(available_tables)
+    selected = []
+    for item in sorted(retrieved_context, key=lambda entry: float(entry.get("score") or 0.0), reverse=True):
+        for table_name in item.get("tables") or []:
+            if table_name in available and table_name not in selected:
+                selected.append(table_name)
+    return selected
