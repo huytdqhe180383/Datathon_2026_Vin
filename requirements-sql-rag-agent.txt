@@ -1,0 +1,7 @@
+langgraph
+llama-index-core
+llama-index-embeddings-openai
+openai
+psycopg[binary]
+python-dotenv
+gradio<6
