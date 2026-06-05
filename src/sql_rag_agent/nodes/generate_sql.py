@@ -14,7 +14,7 @@ def generate_sql(
     llm_provider: LLMProviderProtocol | None = None,
     trace_writer: TraceWriter | None = None,
 ) -> SQLAgentState:
-    question = state["question"].lower()
+    question = state.get("question", "").lower()
     selected_tables = state.get("selected_tables", [])
     current = _coerce_date(current_date)
 
@@ -142,7 +142,7 @@ def _generate_with_llm(
 
     try:
         candidate = llm_provider.generate_sql_candidate(
-            question=state["question"],
+            question=state.get("question", ""),
             question_analysis=state.get("question_analysis", {}),
             schema_context=state.get("schema_context", []),
             selected_tables=state.get("selected_tables", []),
@@ -151,8 +151,9 @@ def _generate_with_llm(
     except TypeError as exc:
         if "retrieved_context" not in str(exc):
             raise
-        candidate = llm_provider.generate_sql_candidate(
-            question=state["question"],
+        from typing import Any, cast
+        candidate = cast(Any, llm_provider).generate_sql_candidate(
+            question=state.get("question", ""),
             question_analysis=state.get("question_analysis", {}),
             schema_context=state.get("schema_context", []),
             selected_tables=state.get("selected_tables", []),
@@ -166,7 +167,7 @@ def _generate_with_llm(
         trace_writer.write(
             "llm_generate_sql",
             {
-                "question": state["question"],
+                "question": state.get("question", ""),
                 "selected_tables": state.get("selected_tables", []),
                 "retrieved_context": state.get("retrieved_context", []),
                 "candidate": candidate,
