@@ -1,0 +1,19 @@
+{
+  "question_index": 1,
+  "question": "What is the delivered net revenue after discounts?",
+  "ground_truth_answer": "{\n    \"question_index\":  1,\n    \"question\":  \"What is the delivered net revenue after discounts?\",\n    \"sql_query\":  \"SELECT ROUND(SUM(oi.quantity * oi.unit_price - oi.discount_amount), 2) AS delivered_net_revenue FROM orders o JOIN order_items oi USING (order_id) WHERE o.order_status = \\u0027delivered\\u0027\",\n    \"ground_truth_answer\":  \"{\\\"delivered_net_revenue\\\": \\\"12518175957.20\\\"}\",\n    \"run1\":  {\n                 \"agent_answer\":  \"The delivered net revenue after discounts is 12518175957.199978.\",\n                 \"agent_citation\":  \"\",\n                 \"auto_mismatch\":  \"yes\",\n                 \"citation_error\":  \"yes\",\n                 \"auto_notes\":  \"delivered_net_revenue: expected one of [12518175957.0, 12518175957.2]\",\n                 \"reviewed_mismatch\":  \"no\",\n                 \"review_notes\":  \"Manual review: exact value with floating-point tail; equivalent to 12518175957.20.\"\n             },\n    \"run2\":  {\n                 \"agent_answer\":  \"The delivered net revenue after discounts is 12518175957.199978.\",\n                 \"agent_citation\":  \"\",\n                 \"auto_mismatch\":  \"yes\",\n                 \"citation_error\":  \"yes\",\n                 \"auto_notes\":  \"delivered_net_revenue: expected one of [12518175957.0, 12518175957.2]\",\n                 \"reviewed_mismatch\":  \"no\",\n                 \"review_notes\":  \"Manual review: exact value with floating-point tail; equivalent to 12518175957.20.\"\n             }\n}\n",
+  "pandas_correct": true,
+  "pandas_latency_seconds": 7.244742,
+  "sql_rag_correct": true,
+  "sql_rag_reason": "match",
+  "sql_rag_latency_seconds": 18.380944,
+  "sql_rag_rows": [
+    {
+      "delivered_net_revenue": 12518175957.2
+    }
+  ],
+  "sql_rag_candidate_sql": [
+    "SELECT SUM(oi.unit_price * oi.quantity - COALESCE(oi.discount_amount, 0)) AS delivered_net_revenue FROM core.orders AS o JOIN core.order_items AS oi ON oi.order_id = o.order_id WHERE o.order_status = 'delivered'"
+  ],
+  "sql_rag_final_answer": "The delivered net revenue after discounts is **12,518,175,957.2**.\n\n**How it was calculated:**  \nIt was computed as the sum of **unit_price × quantity − discount_amount** for order items tied to orders with **order_status = 'delivered'**.\n\n**Tables used:**  \n- `core.orders`\n- `core.order_items`\n\n**Filter applied:**  \n- `core.orders.order_status = 'delivered'`\n\n**Caveat:**  \nThis result reflects delivered orders only and uses the discount amount available on each order item; it does not include any additional adjustments outside the queried tables."
+}

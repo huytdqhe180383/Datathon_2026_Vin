@@ -1,0 +1,30 @@
+{
+  "reference_shape": [
+    6,
+    4
+  ],
+  "agent_shape": [
+    0,
+    0
+  ],
+  "reference_columns": [
+    "acquisition_channel",
+    "delivered_orders",
+    "delivered_net_revenue",
+    "avg_delivered_order_value"
+  ],
+  "agent_columns": [],
+  "match": false,
+  "reason": "column_mismatch",
+  "unordered_match": false,
+  "unordered_reason": "column_mismatch",
+  "ordering_only_mismatch": false,
+  "classification": "column_mismatch",
+  "question": "Return a table with the top 10 acquisition channels ranked by delivered net revenue, including columns acquisition_channel, delivered_orders, delivered_net_revenue, and avg_delivered_order_value.",
+  "latency_seconds": 28.336735,
+  "status": "ok",
+  "sql_query": "WITH delivered_orders AS (\n    SELECT o.order_id, c.acquisition_channel\n    FROM core.orders o\n    JOIN core.customers c ON o.customer_id = c.customer_id\n    WHERE o.order_status = 'delivered'\n),\norder_payments AS (\n    SELECT do.order_id, do.acquisition_channel, COALESCE(SUM(p.payment_value), 0) AS total_payment\n    FROM delivered_orders do\n    LEFT JOIN core.payments p ON do.order_id = p.order_id\n    GROUP BY do.order_id, do.acquisition_channel\n),\norder_refunds AS (\n    SELECT do.order_id, COALESCE(SUM(r.refund_amount), 0) AS total_refund\n    FROM delivered_orders do\n    LEFT JOIN core.order_items oi ON do.order_id = oi.order_id\n    LEFT JOIN core.returns r ON oi.order_item_id = r.order_item_id\n    GROUP BY do.order_id\n),\norder_metrics AS (\n    SELECT op.acquisition_channel,\n           op.order_id,\n           op.total_payment,\n           ort.total_refund,\n           (op.total_payment - ort.total_refund) AS net_revenue\n    FROM order_payments op\n    LEFT JOIN order_refunds ort ON op.order_id = ort.order_id\n)\nSELECT acquisition_channel,\n       COUNT(DISTINCT order_id) AS delivered_orders,\n       ROUND(SUM(net_revenue)::numeric, 2) AS delivered_net_revenue,\n       ROUND((SUM(net_revenue) / NULLIF(COUNT(DISTINCT order_id), 0))::numeric, 2) AS avg_delivered_order_value\nFROM order_metrics\nGROUP BY acquisition_channel\nORDER BY delivered_net_revenue DESC\nLIMIT 10",
+  "pandas_match": true,
+  "pandas_latency_seconds": 6.332446,
+  "pandas_sql_query": "WITH delivered_order_values AS (SELECT o.order_id, c.acquisition_channel, SUM(oi.quantity * oi.unit_price - oi.discount_amount) AS delivered_order_net_value FROM customers c JOIN orders o USING (customer_id) JOIN order_items oi USING (order_id) WHERE o.order_status = 'delivered' GROUP BY 1, 2) SELECT acquisition_channel, COUNT(*) AS delivered_orders, ROUND(SUM(delivered_order_net_value), 2) AS delivered_net_revenue, ROUND(AVG(delivered_order_net_value), 2) AS avg_delivered_order_value FROM delivered_order_values GROUP BY 1 ORDER BY delivered_net_revenue DESC, acquisition_channel LIMIT 10"
+}

@@ -7,7 +7,7 @@ sys.path.append(str(ROOT / "src"))
 
 from sql_rag_agent.graph import run_agent
 from sql_rag_agent.nodes.retrieve_schema_context import retrieve_schema_context
-from sql_rag_agent.retrieval.schema_context import filter_context_by_allowed_tables
+from sql_rag_agent.retrieval.schema_context import filter_context_by_allowed_tables, load_manual_context_entries
 
 
 class FakePostgresMCPTool:
@@ -211,6 +211,48 @@ def test_filter_context_by_allowed_tables_removes_disallowed_table_context():
     )
 
     assert [item["name"] for item in filtered] == ["customers"]
+
+
+def test_manual_context_entries_are_typed_by_contract_document_name(tmp_path):
+    (tmp_path / "benchmark_metric_contracts.md").write_text(
+        "Metric: delivered net revenue\nDefinition: quantity * unit_price - discount_amount",
+        encoding="utf-8",
+    )
+    (tmp_path / "benchmark_output_contracts.md").write_text(
+        "Output Contract: month labels use YYYY-MM",
+        encoding="utf-8",
+    )
+    (tmp_path / "benchmark_fewshot_examples.md").write_text(
+        "Question: What is delivered net revenue?\nSQL: SELECT ...",
+        encoding="utf-8",
+    )
+    (tmp_path / "schema_translation.md").write_text(
+        "orders.zip maps to core.orders.shipping_zip_code",
+        encoding="utf-8",
+    )
+
+    entries = load_manual_context_entries(tmp_path)
+
+    assert {entry["name"]: entry["type"] for entry in entries} == {
+        "benchmark_fewshot_examples": "fewshot_example",
+        "benchmark_metric_contracts": "metric_definition",
+        "benchmark_output_contracts": "output_contract",
+        "schema_translation": "schema_translation",
+    }
+
+
+def test_repo_schema_context_includes_metric_output_translation_and_fewshot_docs():
+    entries = load_manual_context_entries(ROOT / "docs" / "schema_context")
+    by_type = {entry["type"]: entry["content"] for entry in entries}
+
+    assert "metric_definition" in by_type
+    assert "quantity * unit_price - discount_amount" in by_type["metric_definition"]
+    assert "output_contract" in by_type
+    assert "YYYY-MM" in by_type["output_contract"]
+    assert "schema_translation" in by_type
+    assert "shipping_zip_code" in by_type["schema_translation"]
+    assert "fewshot_example" in by_type
+    assert "promo" in by_type["fewshot_example"].lower()
 
 
 def test_run_agent_passes_retrieved_context_to_llm_and_uses_retrieved_tables():

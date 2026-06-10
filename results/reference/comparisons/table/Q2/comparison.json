@@ -1,0 +1,51 @@
+{
+  "reference_shape": [
+    12,
+    3
+  ],
+  "agent_shape": [
+    12,
+    3
+  ],
+  "reference_columns": [
+    "order_month",
+    "delivered_orders",
+    "delivered_net_revenue"
+  ],
+  "agent_columns": [
+    "order_month",
+    "delivered_orders",
+    "delivered_net_revenue"
+  ],
+  "match": false,
+  "reason": "value_mismatch",
+  "unordered_match": false,
+  "unordered_reason": "value_mismatch",
+  "ordering_only_mismatch": false,
+  "classification": "value_mismatch",
+  "question": "Return a table of monthly delivered order counts and delivered net revenue for every month in 2016, with columns order_month, delivered_orders, and delivered_net_revenue.",
+  "latency_seconds": 58.002548,
+  "status": "ok",
+  "sql_query": "WITH delivered_orders AS (\n    SELECT order_id, order_date\n    FROM core.orders\n    WHERE order_status = 'delivered'\n      AND order_date >= DATE '2016-01-01'\n      AND order_date < DATE '2017-01-01'\n),\norder_payments AS (\n    SELECT order_id, SUM(payment_value) AS total_payment\n    FROM core.payments\n    GROUP BY order_id\n),\norder_refunds AS (\n    SELECT oi.order_id, COALESCE(SUM(r.refund_amount), 0) AS total_refund\n    FROM core.order_items oi\n    LEFT JOIN core.returns r ON oi.order_item_id = r.order_item_id\n    GROUP BY oi.order_id\n)\nSELECT\n    DATE_TRUNC('month', d.order_date)::DATE AS order_month,\n    COUNT(DISTINCT d.order_id) AS delivered_orders,\n    COALESCE(SUM(p.total_payment), 0) - COALESCE(SUM(r.total_refund), 0) AS delivered_net_revenue\nFROM delivered_orders d\nLEFT JOIN order_payments p ON d.order_id = p.order_id\nLEFT JOIN order_refunds r ON d.order_id = r.order_id\nGROUP BY DATE_TRUNC('month', d.order_date)\nORDER BY order_month",
+  "pandas_match": true,
+  "pandas_latency_seconds": 5.703384,
+  "pandas_sql_query": "SELECT strftime(CAST(o.order_date AS DATE), '%Y-%m') AS order_month, COUNT(DISTINCT o.order_id) FILTER (WHERE o.order_status = 'delivered') AS delivered_orders, ROUND(SUM(CASE WHEN o.order_status = 'delivered' THEN oi.quantity * oi.unit_price - oi.discount_amount ELSE 0 END), 2) AS delivered_net_revenue FROM orders o JOIN order_items oi USING (order_id) WHERE CAST(o.order_date AS DATE) >= DATE '2016-01-01' AND CAST(o.order_date AS DATE) < DATE '2017-01-01' GROUP BY 1 ORDER BY 1",
+  "diff_preview": [
+    "DataFrame.iloc[:, 0] (column name=\"order_month\") are different",
+    "",
+    "DataFrame.iloc[:, 0] (column name=\"order_month\") values are different (100.0 %)",
+    "[index]: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]",
+    "[left]:  [2016-01, 2016-02, 2016-03, 2016-04, 2016-05, 2016-06, 2016-07, 2016-08, 2016-09, 2016-10, 2016-11, 2016-12]",
+    "[right]: [2016-01-01, 2016-02-01, 2016-03-01, 2016-04-01, 2016-05-01, 2016-06-01, 2016-07-01, 2016-08-01, 2016-09-01, 2016-10-01, 2016-11-01, 2016-12-01]",
+    "At positional index 0, first diff: 2016-01 != 2016-01-01"
+  ],
+  "unordered_diff_preview": [
+    "DataFrame.iloc[:, 0] (column name=\"order_month\") are different",
+    "",
+    "DataFrame.iloc[:, 0] (column name=\"order_month\") values are different (100.0 %)",
+    "[index]: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]",
+    "[left]:  [2016-01, 2016-02, 2016-03, 2016-04, 2016-05, 2016-06, 2016-07, 2016-08, 2016-09, 2016-10, 2016-11, 2016-12]",
+    "[right]: [2016-01-01, 2016-02-01, 2016-03-01, 2016-04-01, 2016-05-01, 2016-06-01, 2016-07-01, 2016-08-01, 2016-09-01, 2016-10-01, 2016-11-01, 2016-12-01]",
+    "At positional index 0, first diff: 2016-01 != 2016-01-01"
+  ]
+}

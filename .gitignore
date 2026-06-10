@@ -10,6 +10,7 @@ __pycache__/
 src/*.egg-info/
 .tmp_pg_check.log
 .tmp_pgdata_check/
+.tmp/
 .tmp_sql_rag_agent_ui.err.log
 .tmp_sql_rag_agent_ui.out.log
 
@@ -20,9 +21,15 @@ data/raw/*.ipynb
 data/processed/*
 !data/processed/.gitkeep
 logs/agent_traces/*.jsonl
+logs/agent_traces/sessions/**
 !logs/agent_traces/.gitkeep
 logs/postgres/*.log
 !logs/postgres/.gitkeep
+results/sessions/**
+!results/.gitkeep
+!results/README.md
+!results/reference/
+!results/reference/**
 results/value_mismatch_rerun/
 reports/pandasai_query_trace.jsonl
 

@@ -1,0 +1,42 @@
+{
+  "reference_shape": [
+    6,
+    3
+  ],
+  "agent_shape": [
+    6,
+    3
+  ],
+  "reference_columns": [
+    "acquisition_channel",
+    "repeat_customers",
+    "avg_days_first_to_second_order"
+  ],
+  "agent_columns": [
+    "acquisition_channel",
+    "repeat_customers",
+    "avg_days_first_to_second_order"
+  ],
+  "match": false,
+  "reason": "value_mismatch",
+  "unordered_match": true,
+  "unordered_reason": "exact_after_normalization",
+  "ordering_only_mismatch": true,
+  "classification": "ordering_only",
+  "question": "Return a table showing the average number of days between the first and second order by acquisition_channel, with columns acquisition_channel, repeat_customers, and avg_days_first_to_second_order.",
+  "latency_seconds": 20.075149,
+  "status": "ok",
+  "sql_query": "WITH customer_orders AS (\n    SELECT \n        o.customer_id,\n        o.order_date,\n        o.order_id,\n        ROW_NUMBER() OVER (\n            PARTITION BY o.customer_id \n            ORDER BY o.order_date ASC, o.order_id ASC\n        ) AS ord_seq\n    FROM core.orders AS o\n),\nfirst_second AS (\n    SELECT \n        c.customer_id,\n        c.acquisition_channel,\n        MAX(CASE WHEN co.ord_seq = 1 THEN co.order_date END) AS first_order_date,\n        MAX(CASE WHEN co.ord_seq = 2 THEN co.order_date END) AS second_order_date\n    FROM customer_orders AS co\n    JOIN core.customers AS c ON c.customer_id = co.customer_id\n    WHERE co.ord_seq IN (1, 2)\n    GROUP BY c.customer_id, c.acquisition_channel\n    HAVING COUNT(*) = 2\n),\ndays_diff AS (\n    SELECT \n        acquisition_channel,\n        customer_id,\n        (second_order_date - first_order_date) AS days_between\n    FROM first_second\n    WHERE second_order_date IS NOT NULL\n)\nSELECT \n    acquisition_channel,\n    COUNT(DISTINCT customer_id) AS repeat_customers,\n    AVG(days_between) AS avg_days_first_to_second_order\nFROM days_diff\nGROUP BY acquisition_channel\nORDER BY acquisition_channel",
+  "pandas_match": true,
+  "pandas_latency_seconds": 17.082219,
+  "pandas_sql_query": "WITH sequenced_orders AS (SELECT o.customer_id, c.acquisition_channel, CAST(o.order_date AS DATE) AS order_date, ROW_NUMBER() OVER (PARTITION BY o.customer_id ORDER BY CAST(o.order_date AS DATE), o.order_id) AS rn FROM orders o JOIN customers c USING (customer_id)), first_two AS (SELECT customer_id, acquisition_channel, MAX(CASE WHEN rn = 1 THEN order_date END) AS first_order_date, MAX(CASE WHEN rn = 2 THEN order_date END) AS second_order_date FROM sequenced_orders WHERE rn <= 2 GROUP BY 1, 2) SELECT acquisition_channel, COUNT(*) FILTER (WHERE second_order_date IS NOT NULL) AS repeat_customers, ROUND(AVG(date_diff('day', first_order_date, second_order_date)) FILTER (WHERE second_order_date IS NOT NULL), 4) AS avg_days_first_to_second_order FROM first_two GROUP BY 1 ORDER BY avg_days_first_to_second_order, acquisition_channel",
+  "diff_preview": [
+    "DataFrame.iloc[:, 0] (column name=\"acquisition_channel\") are different",
+    "",
+    "DataFrame.iloc[:, 0] (column name=\"acquisition_channel\") values are different (66.66667 %)",
+    "[index]: [0, 1, 2, 3, 4, 5]",
+    "[left]:  [direct, social_media, organic_search, email_campaign, paid_search, referral]",
+    "[right]: [direct, email_campaign, organic_search, paid_search, referral, social_media]",
+    "At positional index 1, first diff: social_media != email_campaign"
+  ]
+}

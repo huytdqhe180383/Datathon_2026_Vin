@@ -1,0 +1,53 @@
+{
+  "reference_shape": [
+    5,
+    4
+  ],
+  "agent_shape": [
+    5,
+    4
+  ],
+  "reference_columns": [
+    "unit_bucket",
+    "orders",
+    "avg_order_net_value",
+    "total_net_revenue"
+  ],
+  "agent_columns": [
+    "unit_bucket",
+    "orders",
+    "avg_order_net_value",
+    "total_net_revenue"
+  ],
+  "match": false,
+  "reason": "value_mismatch",
+  "unordered_match": false,
+  "unordered_reason": "value_mismatch",
+  "ordering_only_mismatch": false,
+  "classification": "value_mismatch",
+  "question": "Return a table of order-size buckets, with columns unit_bucket, orders, avg_order_net_value, and total_net_revenue.",
+  "latency_seconds": 30.957121,
+  "status": "ok",
+  "sql_query": "WITH order_totals AS (\n  SELECT\n    oi.order_id,\n    SUM(oi.quantity) AS total_quantity,\n    SUM(oi.unit_price * oi.quantity - COALESCE(oi.discount_amount, 0)) AS order_net_value\n  FROM core.orders AS o\n  JOIN core.order_items AS oi ON o.order_id = oi.order_id\n  GROUP BY oi.order_id\n),\nbuckets AS (\n  SELECT\n    CASE\n      WHEN total_quantity = 1 THEN '1'\n      WHEN total_quantity BETWEEN 2 AND 3 THEN '2-3'\n      WHEN total_quantity BETWEEN 4 AND 5 THEN '4-5'\n      WHEN total_quantity BETWEEN 6 AND 10 THEN '6-10'\n      ELSE '11+'\n    END AS unit_bucket,\n    COUNT(*) AS orders,\n    AVG(order_net_value) AS avg_order_net_value,\n    SUM(order_net_value) AS total_net_revenue,\n    -- sort key for logical ordering\n    CASE\n      WHEN total_quantity = 1 THEN 1\n      WHEN total_quantity BETWEEN 2 AND 3 THEN 2\n      WHEN total_quantity BETWEEN 4 AND 5 THEN 3\n      WHEN total_quantity BETWEEN 6 AND 10 THEN 4\n      ELSE 5\n    END AS bucket_order\n  FROM order_totals\n  GROUP BY unit_bucket, bucket_order\n)\nSELECT unit_bucket, orders, avg_order_net_value, total_net_revenue\nFROM buckets\nORDER BY bucket_order",
+  "pandas_match": false,
+  "pandas_latency_seconds": 5.878138,
+  "pandas_sql_query": "WITH order_units AS (SELECT o.order_id, SUM(oi.quantity) AS total_units, SUM(oi.quantity * oi.unit_price - oi.discount_amount) AS order_net_value FROM orders o JOIN order_items oi USING (order_id) GROUP BY 1) SELECT CASE WHEN total_units = 1 THEN '1' WHEN total_units BETWEEN 2 AND 3 THEN '2-3' WHEN total_units BETWEEN 4 AND 6 THEN '4-6' WHEN total_units BETWEEN 7 AND 10 THEN '7-10' ELSE '11+' END AS unit_bucket, COUNT(*) AS orders, ROUND(AVG(order_net_value), 2) AS avg_order_net_value, ROUND(SUM(order_net_value), 2) AS total_net_revenue FROM order_units GROUP BY 1 ORDER BY CASE unit_bucket WHEN '1' THEN 1 WHEN '2-3' THEN 2 WHEN '4-6' THEN 3 WHEN '7-10' THEN 4 ELSE 5 END",
+  "diff_preview": [
+    "DataFrame.iloc[:, 0] (column name=\"unit_bucket\") are different",
+    "",
+    "DataFrame.iloc[:, 0] (column name=\"unit_bucket\") values are different (40.0 %)",
+    "[index]: [0, 1, 2, 3, 4]",
+    "[left]:  [1, 2-3, 4-6, 7-10, 11+]",
+    "[right]: [1, 2-3, 4-5, 6-10, 11+]",
+    "At positional index 2, first diff: 4-6 != 4-5"
+  ],
+  "unordered_diff_preview": [
+    "DataFrame.iloc[:, 0] (column name=\"unit_bucket\") are different",
+    "",
+    "DataFrame.iloc[:, 0] (column name=\"unit_bucket\") values are different (40.0 %)",
+    "[index]: [0, 1, 2, 3, 4]",
+    "[left]:  [1, 11+, 2-3, 4-6, 7-10]",
+    "[right]: [1, 11+, 2-3, 4-5, 6-10]",
+    "At positional index 3, first diff: 4-6 != 4-5"
+  ]
+}

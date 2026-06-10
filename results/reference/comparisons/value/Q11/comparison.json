@@ -1,0 +1,19 @@
+{
+  "question_index": 11,
+  "question": "What is the median number of days between consecutive orders for repeat customers?",
+  "ground_truth_answer": "{\n    \"question_index\":  11,\n    \"question\":  \"What is the median number of days between consecutive orders for repeat customers?\",\n    \"sql_query\":  \"WITH ordered_dates AS (SELECT customer_id, CAST(order_date AS DATE) AS order_date, LAG(CAST(order_date AS DATE)) OVER (PARTITION BY customer_id ORDER BY CAST(order_date AS DATE)) AS prev_order_date FROM orders), order_gaps AS (SELECT date_diff(\\u0027day\\u0027, prev_order_date, order_date) AS gap_days FROM ordered_dates WHERE prev_order_date IS NOT NULL) SELECT ROUND(median(gap_days), 4) AS median_days_between_orders FROM order_gaps\",\n    \"ground_truth_answer\":  \"{\\\"median_days_between_orders\\\": \\\"144.0000\\\"}\",\n    \"run1\":  {\n                 \"agent_answer\":  \"Unfortunately, I was not able to get your answer. Please try again.\",\n                 \"agent_citation\":  \"\",\n                 \"auto_mismatch\":  \"yes\",\n                 \"citation_error\":  \"yes\",\n                 \"auto_notes\":  \"median_days_between_orders: expected one of [144.0]\",\n                 \"reviewed_mismatch\":  \"yes\",\n                 \"review_notes\":  \"median_days_between_orders: expected one of [144.0]\"\n             },\n    \"run2\":  {\n                 \"agent_answer\":  \"Unfortunately, I was not able to get your answer. Please try again.\",\n                 \"agent_citation\":  \"\",\n                 \"auto_mismatch\":  \"yes\",\n                 \"citation_error\":  \"yes\",\n                 \"auto_notes\":  \"median_days_between_orders: expected one of [144.0]\",\n                 \"reviewed_mismatch\":  \"yes\",\n                 \"review_notes\":  \"median_days_between_orders: expected one of [144.0]\"\n             }\n}\n",
+  "pandas_correct": false,
+  "pandas_latency_seconds": 18.552026,
+  "sql_rag_correct": true,
+  "sql_rag_reason": "match",
+  "sql_rag_latency_seconds": 20.375952,
+  "sql_rag_rows": [
+    {
+      "median_days_between_orders": 144.0
+    }
+  ],
+  "sql_rag_candidate_sql": [
+    "WITH customer_orders AS (\n  SELECT\n    customer_id,\n    order_date,\n    LAG(order_date) OVER (PARTITION BY customer_id ORDER BY order_date) AS prev_order_date\n  FROM core.orders\n),\nday_gaps AS (\n  SELECT\n    customer_id,\n    (order_date - prev_order_date) AS days_between\n  FROM customer_orders\n  WHERE prev_order_date IS NOT NULL\n)\nSELECT\n  PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY days_between) AS median_days_between_orders\nFROM day_gaps"
+  ],
+  "sql_rag_final_answer": "**Direct answer:** The median number of days between consecutive orders for repeat customers is **144.0 days**.\n\n**Calculation basis:**  \n- For each customer, the query orders their orders by `order_date` and uses `LAG(order_date)` to get the previous order date.  \n- It computes `days_between = order_date - prev_order_date` for each consecutive pair of orders.  \n- It then takes the **median** of all computed `days_between` values using `PERCENTILE_CONT(0.5)`.\n\n**Tables used:**  \n- `core.orders` (the query only references this table)\n\n**Filters applied:**  \n- No explicit filters were applied beyond excluding the first order per customer via `WHERE prev_order_date IS NOT NULL` (so only customers with at least two orders contribute gaps).\n\n**Caveat:**  \n- The result reflects the median across **all consecutive-order gaps** for customers with at least two orders, considering **all time** (no date range filter was applied)."
+}

@@ -1,0 +1,20 @@
+{
+  "question_index": 5,
+  "question": "Which age group has the highest delivered average order value, and what is that value?",
+  "ground_truth_answer": "{\n    \"question_index\":  5,\n    \"question\":  \"Which age group has the highest delivered average order value, and what is that value?\",\n    \"sql_query\":  \"WITH order_net_values AS (SELECT o.order_id, c.age_group, SUM(oi.quantity * oi.unit_price - oi.discount_amount) AS order_net_value FROM orders o JOIN customers c USING (customer_id) JOIN order_items oi USING (order_id) WHERE o.order_status = \\u0027delivered\\u0027 GROUP BY 1,2) SELECT age_group, ROUND(AVG(order_net_value), 2) AS avg_order_value FROM order_net_values GROUP BY 1 ORDER BY 2 DESC, 1 LIMIT 1\",\n    \"ground_truth_answer\":  \"{\\\"age_group\\\": \\\"45-54\\\", \\\"avg_order_value\\\": \\\"24319.67\\\"}\",\n    \"run1\":  {\n                 \"agent_answer\":  \"The age group with the highest delivered average order value is 45-54, with an average order value of 24319.67. Citation: [data/processed/customers.csv::customer_id,age_group; data/processed/orders.csv::order_id,customer_id,order_status; data/processed/order_items.csv::order_id,quantity,unit_price,discount_amount]\",\n                 \"agent_citation\":  \"[data/processed/customers.csv::customer_id,age_group; data/processed/orders.csv::order_id,customer_id,order_status; data/processed/order_items.csv::order_id,quantity,unit_price,discount_amount]\",\n                 \"auto_mismatch\":  \"no\",\n                 \"citation_error\":  \"no\",\n                 \"auto_notes\":  \"OK\",\n                 \"reviewed_mismatch\":  \"no\",\n                 \"review_notes\":  \"OK\"\n             },\n    \"run2\":  {\n                 \"agent_answer\":  \"The age group with the highest delivered average order value is 45-54, with an average value of 24319.67. Citation: [data/processed/customers.csv::age_group], [data/processed/orders.csv::order_status,customer_id,order_id], [data/processed/order_items.csv::order_id,quantity,unit_price,discount_amount].\",\n                 \"agent_citation\":  \"[data/processed/customers.csv::age_group], [data/processed/orders.csv::order_status,customer_id,order_id], [data/processed/order_items.csv::order_id,quantity,unit_price,discount_amount].\",\n                 \"auto_mismatch\":  \"no\",\n                 \"citation_error\":  \"no\",\n                 \"auto_notes\":  \"OK\",\n                 \"reviewed_mismatch\":  \"no\",\n                 \"review_notes\":  \"OK\"\n             }\n}\n",
+  "pandas_correct": true,
+  "pandas_latency_seconds": 7.821506,
+  "sql_rag_correct": true,
+  "sql_rag_reason": "match",
+  "sql_rag_latency_seconds": 19.889293,
+  "sql_rag_rows": [
+    {
+      "age_group": "45-54",
+      "avg_order_value": 24319.671636662864
+    }
+  ],
+  "sql_rag_candidate_sql": [
+    "WITH order_totals AS (SELECT o.order_id, c.age_group, SUM(p.payment_value) AS order_value FROM core.orders AS o JOIN core.customers AS c ON o.customer_id = c.customer_id JOIN core.payments AS p ON o.order_id = p.order_id WHERE o.order_status = 'delivered' GROUP BY o.order_id, c.age_group) SELECT age_group, AVG(order_value) AS avg_order_value FROM order_totals GROUP BY age_group ORDER BY avg_order_value DESC LIMIT 1"
+  ],
+  "sql_rag_final_answer": "The **45–54** age group has the **highest delivered average order value**, at **24,319.67**.\n\n**Calculation basis:**  \n- First, the query summed `payment_value` to get the total value for each **delivered** order.  \n- Then it averaged those order totals by `age_group`.  \n- The result returned the top age group by that average.\n\n**Tables used:**  \n- `core.orders`\n- `core.customers`\n- `core.payments`\n\n**Filter applied:**  \n- `order_status = 'delivered'`\n\n**Caveat:**  \n- This is based on the returned result set, which contains only the top-ranked age group."
+}

@@ -10,6 +10,7 @@ from sql_rag_agent.nodes.compose_answer import compose_answer
 from sql_rag_agent.nodes.execute_sql import execute_sql
 from sql_rag_agent.nodes.generate_sql import generate_sql
 from sql_rag_agent.nodes.inspect_schema import inspect_schema
+from sql_rag_agent.nodes.rank_results import rank_results
 from sql_rag_agent.nodes.retrieve_schema_context import retrieve_schema_context
 from sql_rag_agent.nodes.understand_question import understand_question
 from sql_rag_agent.nodes.validate_sql import validate_sql
@@ -50,6 +51,7 @@ def build_graph(
         "execute_sql",
         partial(execute_sql, mcp_tool=mcp_tool, llm_provider=llm_provider, trace_writer=trace_writer),
     )
+    graph.add_node("rank_results", partial(rank_results, trace_writer=trace_writer))
     graph.add_node(
         "compose_answer",
         partial(compose_answer, llm_provider=llm_provider, trace_writer=trace_writer),
@@ -61,7 +63,8 @@ def build_graph(
     graph.add_edge("inspect_schema", "generate_sql")
     graph.add_edge("generate_sql", "validate_sql")
     graph.add_edge("validate_sql", "execute_sql")
-    graph.add_edge("execute_sql", "compose_answer")
+    graph.add_edge("execute_sql", "rank_results")
+    graph.add_edge("rank_results", "compose_answer")
     graph.add_edge("compose_answer", END)
     return graph.compile()
 
@@ -117,6 +120,7 @@ def run_agent(
             "candidate_sql": final_state.get("candidate_sql", []),
             "validated_sql": final_state.get("validated_sql", []),
             "execution_results": final_state.get("execution_results", []),
+            "ranked_results": final_state.get("ranked_results", []),
             "final_answer": final_state.get("final_answer"),
             "confidence": final_state.get("confidence"),
             "errors": final_state.get("errors", []),

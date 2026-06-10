@@ -1,0 +1,20 @@
+{
+  "question_index": 7,
+  "question": "Which payment method has the highest return rate, and what is that rate?",
+  "ground_truth_answer": "{\n    \"question_index\":  7,\n    \"question\":  \"Which payment method has the highest return rate, and what is that rate?\",\n    \"sql_query\":  \"SELECT payment_method, ROUND(100.0 * AVG(CASE WHEN order_status = \\u0027returned\\u0027 THEN 1.0 ELSE 0.0 END), 4) AS return_rate_pct FROM orders GROUP BY 1 ORDER BY 2 DESC, 1 LIMIT 1\",\n    \"ground_truth_answer\":  \"{\\\"payment_method\\\": \\\"cod\\\", \\\"return_rate_pct\\\": \\\"8.9159\\\"}\",\n    \"run1\":  {\n                 \"agent_answer\":  \"The payment method with the highest return rate is cod, with a return rate of 8.92%. Citation: [data/processed/orders.csv::payment_method,order_status]\",\n                 \"agent_citation\":  \"[data/processed/orders.csv::payment_method,order_status]\",\n                 \"auto_mismatch\":  \"no\",\n                 \"citation_error\":  \"no\",\n                 \"auto_notes\":  \"OK\",\n                 \"reviewed_mismatch\":  \"no\",\n                 \"review_notes\":  \"OK\"\n             },\n    \"run2\":  {\n                 \"agent_answer\":  \"The payment method with the highest return rate is cod, at 8.92%. Citation: [data/processed/orders.csv::payment_method,order_status].\",\n                 \"agent_citation\":  \"[data/processed/orders.csv::payment_method,order_status].\",\n                 \"auto_mismatch\":  \"no\",\n                 \"citation_error\":  \"no\",\n                 \"auto_notes\":  \"OK\",\n                 \"reviewed_mismatch\":  \"no\",\n                 \"review_notes\":  \"OK\"\n             }\n}\n",
+  "pandas_correct": true,
+  "pandas_latency_seconds": 5.620426,
+  "sql_rag_correct": false,
+  "sql_rag_reason": "missing_or_mismatched:return_rate_pct",
+  "sql_rag_latency_seconds": 27.258174,
+  "sql_rag_rows": [
+    {
+      "payment_method": "cod",
+      "return_rate": 0.0890247308157756
+    }
+  ],
+  "sql_rag_candidate_sql": [
+    "SELECT p.payment_method, (COUNT(DISTINCT CASE WHEN r.return_id IS NOT NULL THEN o.order_id END)::numeric / NULLIF(COUNT(DISTINCT o.order_id), 0)) AS return_rate FROM core.payments AS p JOIN core.orders AS o ON o.order_id = p.order_id LEFT JOIN core.order_items AS oi ON oi.order_id = o.order_id LEFT JOIN core.returns AS r ON r.order_item_id = oi.order_item_id GROUP BY p.payment_method ORDER BY return_rate DESC LIMIT 1"
+  ],
+  "sql_rag_final_answer": "**Direct answer:** The payment method with the highest return rate is **COD**, with a return rate of **0.0890247308157756** (≈ **8.90%**).\n\n**Calculation basis:**  \nReturn rate = **(number of distinct orders that have at least one return) / (total number of distinct orders)** for each payment method.  \nIn the query, this is computed as:\n- Numerator: `COUNT(DISTINCT CASE WHEN r.return_id IS NOT NULL THEN o.order_id END)`\n- Denominator: `COUNT(DISTINCT o.order_id)`\n- Then divided as `numerator / NULLIF(denominator, 0)` to avoid divide-by-zero.\n\n**Tables used:**\n- `core.payments` (to get `payment_method`)\n- `core.orders` (to get `order_id`)\n- `core.order_items` (to connect orders to returns)\n- `core.returns` (to detect whether an order has returns)\n\n**Filters applied:** None (no WHERE clause). The only selection is `ORDER BY return_rate DESC LIMIT 1` to return the top payment method.\n\n**Caveat:** This return rate is based on **orders that can be linked through payments → orders → order_items → returns**; if an order/payment lacks the expected linkage, it may affect inclusion in the counts."
+}

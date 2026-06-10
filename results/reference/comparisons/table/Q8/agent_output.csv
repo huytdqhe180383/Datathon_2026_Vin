@@ -1,0 +1,7 @@
+order_source,total_orders,delivered_orders,returned_orders,cancelled_orders,delivered_rate_pct
+direct,51951,41387,2910,4822,79.67
+email_campaign,77572,61952,4372,7132,79.86
+organic_search,181495,144870,10168,16743,79.82
+paid_search,141652,113146,7910,12893,79.88
+referral,64565,51589,3591,6028,79.9
+social_media,129710,103772,7191,11844,80.0

@@ -1,0 +1,31 @@
+{
+  "reference_shape": [
+    0,
+    5
+  ],
+  "agent_shape": [
+    0,
+    0
+  ],
+  "reference_columns": [
+    "zip",
+    "ordering_customers",
+    "repeat_customers",
+    "repeat_customer_rate_pct",
+    "avg_orders_per_customer"
+  ],
+  "agent_columns": [],
+  "match": false,
+  "reason": "column_mismatch",
+  "unordered_match": false,
+  "unordered_reason": "column_mismatch",
+  "ordering_only_mismatch": false,
+  "classification": "column_mismatch",
+  "question": "Return a table of zip-code loyalty metrics for zip codes with at least 50 ordering customers, with columns zip, ordering_customers, repeat_customers, repeat_customer_rate_pct, and avg_orders_per_customer.",
+  "latency_seconds": 25.403677,
+  "status": "ok",
+  "sql_query": "WITH customer_orders AS (\n    SELECT c.zip_code,\n           c.customer_id,\n           COUNT(o.order_id) AS order_count\n    FROM core.customers AS c\n    JOIN core.orders AS o ON o.customer_id = c.customer_id\n    GROUP BY c.zip_code, c.customer_id\n)\nSELECT cu.zip_code AS zip,\n       COUNT(cu.customer_id) AS ordering_customers,\n       COUNT(CASE WHEN cu.order_count >= 2 THEN 1 END) AS repeat_customers,\n       ROUND(100.0 * COUNT(CASE WHEN cu.order_count >= 2 THEN 1 END) / COUNT(cu.customer_id), 2) AS repeat_customer_rate_pct,\n       ROUND(AVG(cu.order_count), 2) AS avg_orders_per_customer\nFROM customer_orders AS cu\nGROUP BY cu.zip_code\nHAVING COUNT(cu.customer_id) >= 50\nORDER BY cu.zip_code",
+  "pandas_match": true,
+  "pandas_latency_seconds": 9.067816,
+  "pandas_sql_query": "WITH zip_customer_orders AS (SELECT zip, customer_id, COUNT(*) AS order_count FROM orders GROUP BY 1, 2) SELECT zip, COUNT(*) AS ordering_customers, SUM(CASE WHEN order_count > 1 THEN 1 ELSE 0 END) AS repeat_customers, ROUND(100.0 * SUM(CASE WHEN order_count > 1 THEN 1 ELSE 0 END) / COUNT(*), 4) AS repeat_customer_rate_pct, ROUND(AVG(order_count), 4) AS avg_orders_per_customer FROM zip_customer_orders GROUP BY 1 HAVING COUNT(*) >= 50 ORDER BY repeat_customer_rate_pct DESC, zip LIMIT 20"
+}

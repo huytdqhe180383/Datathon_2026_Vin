@@ -1,0 +1,35 @@
+{
+  "reference_shape": [
+    126,
+    4
+  ],
+  "agent_shape": [
+    100,
+    4
+  ],
+  "reference_columns": [
+    "order_month",
+    "total_orders",
+    "promo_orders",
+    "promo_order_rate_pct"
+  ],
+  "agent_columns": [
+    "order_month",
+    "total_orders",
+    "promo_orders",
+    "promo_order_rate_pct"
+  ],
+  "match": false,
+  "reason": "shape_mismatch",
+  "unordered_match": false,
+  "unordered_reason": "shape_mismatch",
+  "ordering_only_mismatch": false,
+  "classification": "shape_mismatch",
+  "question": "Return a table showing monthly promo adoption, with columns order_month, total_orders, promo_orders, and promo_order_rate_pct.",
+  "latency_seconds": 61.738458,
+  "status": "ok",
+  "sql_query": "WITH monthly_orders AS (\n    SELECT \n        DATE_TRUNC('month', o.order_date) AS order_month,\n        o.order_id,\n        EXISTS (\n            SELECT 1 \n            FROM core.order_items AS oi \n            WHERE oi.order_id = o.order_id AND oi.discount_amount > 0\n        ) AS is_promo\n    FROM core.orders AS o\n)\nSELECT \n    order_month,\n    COUNT(DISTINCT order_id) AS total_orders,\n    COUNT(DISTINCT CASE WHEN is_promo THEN order_id END) AS promo_orders,\n    ROUND(100.0 * COUNT(DISTINCT CASE WHEN is_promo THEN order_id END) / NULLIF(COUNT(DISTINCT order_id), 0), 2) AS promo_order_rate_pct\nFROM monthly_orders\nGROUP BY order_month\nORDER BY order_month",
+  "pandas_match": true,
+  "pandas_latency_seconds": 6.89266,
+  "pandas_sql_query": "WITH order_promo_flags AS (SELECT order_id, MAX(CASE WHEN promo_id <> 'NO_PROMO' OR COALESCE(promo_id_2, '') NOT IN ('', 'NO_PROMO') THEN 1 ELSE 0 END) AS used_promo FROM order_items GROUP BY 1) SELECT strftime(CAST(o.order_date AS DATE), '%Y-%m') AS order_month, COUNT(*) AS total_orders, SUM(CASE WHEN p.used_promo = 1 THEN 1 ELSE 0 END) AS promo_orders, ROUND(100.0 * SUM(CASE WHEN p.used_promo = 1 THEN 1 ELSE 0 END) / COUNT(*), 4) AS promo_order_rate_pct FROM orders o JOIN order_promo_flags p USING (order_id) GROUP BY 1 ORDER BY 1"
+}

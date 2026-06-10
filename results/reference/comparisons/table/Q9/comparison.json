@@ -1,0 +1,53 @@
+{
+  "reference_shape": [
+    2,
+    4
+  ],
+  "agent_shape": [
+    2,
+    4
+  ],
+  "reference_columns": [
+    "promo_bucket",
+    "orders",
+    "net_revenue",
+    "avg_order_net_value"
+  ],
+  "agent_columns": [
+    "promo_bucket",
+    "orders",
+    "net_revenue",
+    "avg_order_net_value"
+  ],
+  "match": false,
+  "reason": "value_mismatch",
+  "unordered_match": false,
+  "unordered_reason": "value_mismatch",
+  "ordering_only_mismatch": false,
+  "classification": "value_mismatch",
+  "question": "Return a table comparing promo versus no-promo orders, with columns promo_bucket, orders, net_revenue, and avg_order_net_value.",
+  "latency_seconds": 31.250586,
+  "status": "ok",
+  "sql_query": "WITH per_order AS (\n    SELECT\n        o.order_id,\n        COALESCE(p.total_payments, 0) - COALESCE(r.total_refunds, 0) AS net_revenue,\n        pr.promo_bucket\n    FROM core.orders o\n    LEFT JOIN (\n        SELECT order_id, SUM(payment_value) AS total_payments\n        FROM core.payments\n        GROUP BY order_id\n    ) p ON o.order_id = p.order_id\n    LEFT JOIN (\n        SELECT oi.order_id, SUM(refund_amount) AS total_refunds\n        FROM core.returns r\n        JOIN core.order_items oi ON r.order_item_id = oi.order_item_id\n        GROUP BY oi.order_id\n    ) r ON o.order_id = r.order_id\n    JOIN (\n        SELECT o.order_id,\n               CASE WHEN MAX(oi.discount_amount) > 0 THEN 'Promo' ELSE 'No Promo' END AS promo_bucket\n        FROM core.orders o\n        JOIN core.order_items oi ON o.order_id = oi.order_id\n        GROUP BY o.order_id\n    ) pr ON o.order_id = pr.order_id\n)\nSELECT\n    promo_bucket,\n    COUNT(order_id) AS orders,\n    ROUND(SUM(net_revenue)::numeric, 2) AS net_revenue,\n    ROUND(AVG(net_revenue)::numeric, 2) AS avg_order_net_value\nFROM per_order\nGROUP BY promo_bucket\nORDER BY promo_bucket",
+  "pandas_match": false,
+  "pandas_latency_seconds": 4.571691,
+  "pandas_sql_query": "WITH order_promo_flags AS (SELECT order_id, MAX(CASE WHEN promo_id <> 'NO_PROMO' OR COALESCE(promo_id_2, '') NOT IN ('', 'NO_PROMO') THEN 1 ELSE 0 END) AS used_promo FROM order_items GROUP BY 1), order_net_values AS (SELECT order_id, SUM(quantity * unit_price - discount_amount) AS order_net_value FROM order_items GROUP BY 1) SELECT CASE WHEN p.used_promo = 1 THEN 'used_promo' ELSE 'no_promo' END AS promo_bucket, COUNT(*) AS orders, ROUND(SUM(v.order_net_value), 2) AS net_revenue, ROUND(AVG(v.order_net_value), 2) AS avg_order_net_value FROM order_promo_flags p JOIN order_net_values v USING (order_id) GROUP BY 1 ORDER BY orders DESC, promo_bucket",
+  "diff_preview": [
+    "DataFrame.iloc[:, 0] (column name=\"promo_bucket\") are different",
+    "",
+    "DataFrame.iloc[:, 0] (column name=\"promo_bucket\") values are different (100.0 %)",
+    "[index]: [0, 1]",
+    "[left]:  [no_promo, used_promo]",
+    "[right]: [No Promo, Promo]",
+    "At positional index 0, first diff: no_promo != No Promo"
+  ],
+  "unordered_diff_preview": [
+    "DataFrame.iloc[:, 0] (column name=\"promo_bucket\") are different",
+    "",
+    "DataFrame.iloc[:, 0] (column name=\"promo_bucket\") values are different (100.0 %)",
+    "[index]: [0, 1]",
+    "[left]:  [no_promo, used_promo]",
+    "[right]: [No Promo, Promo]",
+    "At positional index 0, first diff: no_promo != No Promo"
+  ]
+}

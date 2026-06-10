@@ -1,0 +1,48 @@
+{
+  "reference_shape": [
+    6,
+    6
+  ],
+  "agent_shape": [
+    6,
+    6
+  ],
+  "reference_columns": [
+    "order_source",
+    "total_orders",
+    "delivered_orders",
+    "returned_orders",
+    "cancelled_orders",
+    "delivered_rate_pct"
+  ],
+  "agent_columns": [
+    "order_source",
+    "total_orders",
+    "delivered_orders",
+    "returned_orders",
+    "cancelled_orders",
+    "delivered_rate_pct"
+  ],
+  "match": false,
+  "reason": "value_mismatch",
+  "unordered_match": true,
+  "unordered_reason": "exact_after_normalization",
+  "ordering_only_mismatch": true,
+  "classification": "ordering_only",
+  "question": "Return a table summarizing order outcomes by order_source, with columns order_source, total_orders, delivered_orders, returned_orders, cancelled_orders, and delivered_rate_pct.",
+  "latency_seconds": 22.390478,
+  "status": "ok",
+  "sql_query": "SELECT\n    order_source,\n    COUNT(*) AS total_orders,\n    COUNT(*) FILTER (WHERE order_status = 'delivered') AS delivered_orders,\n    COUNT(*) FILTER (WHERE order_status = 'returned') AS returned_orders,\n    COUNT(*) FILTER (WHERE order_status = 'cancelled') AS cancelled_orders,\n    ROUND(100.0 * COUNT(*) FILTER (WHERE order_status = 'delivered') / NULLIF(COUNT(*), 0), 2) AS delivered_rate_pct\nFROM core.orders\nGROUP BY order_source\nORDER BY order_source",
+  "pandas_match": true,
+  "pandas_latency_seconds": 4.194711,
+  "pandas_sql_query": "SELECT order_source, COUNT(*) AS total_orders, SUM(CASE WHEN order_status = 'delivered' THEN 1 ELSE 0 END) AS delivered_orders, SUM(CASE WHEN order_status = 'returned' THEN 1 ELSE 0 END) AS returned_orders, SUM(CASE WHEN order_status = 'cancelled' THEN 1 ELSE 0 END) AS cancelled_orders, ROUND(100.0 * SUM(CASE WHEN order_status = 'delivered' THEN 1 ELSE 0 END) / COUNT(*), 4) AS delivered_rate_pct FROM orders GROUP BY 1 ORDER BY delivered_rate_pct DESC, order_source",
+  "diff_preview": [
+    "DataFrame.iloc[:, 0] (column name=\"order_source\") are different",
+    "",
+    "DataFrame.iloc[:, 0] (column name=\"order_source\") values are different (100.0 %)",
+    "[index]: [0, 1, 2, 3, 4, 5]",
+    "[left]:  [social_media, referral, paid_search, email_campaign, organic_search, direct]",
+    "[right]: [direct, email_campaign, organic_search, paid_search, referral, social_media]",
+    "At positional index 0, first diff: social_media != direct"
+  ]
+}

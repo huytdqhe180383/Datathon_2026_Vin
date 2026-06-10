@@ -1,0 +1,10 @@
+gender,device_type,delivered_orders,delivered_net_revenue
+Female,desktop,101417,2454891371.02
+Female,mobile,114097,2768697265.32
+Female,tablet,37747,907746514.54
+Male,desktop,97547,2355899835.36
+Male,mobile,109815,2658812926.55
+Male,tablet,36223,884860577.75
+Non-binary,desktop,7856,192338429.8
+Non-binary,mobile,8960,219024518.2
+Non-binary,tablet,3054,75904518.66

@@ -18,9 +18,9 @@ def generate_sql(
     selected_tables = state.get("selected_tables", [])
     current = _coerce_date(current_date)
 
-    llm_candidate = _generate_with_llm(state, llm_provider, trace_writer)
-    if llm_candidate is not None:
-        return {**state, "candidate_sql": [llm_candidate]}
+    llm_candidates = _generate_with_llm(state, llm_provider, trace_writer)
+    if llm_candidates:
+        return {**state, "candidate_sql": llm_candidates}
 
     requires_product_revenue_tables = "revenue" in question and "product" in question
     requires_refund_tables = _is_refund_customer_count_question(question)
@@ -103,7 +103,7 @@ def generate_sql(
                 f"sd.sales_date < DATE '{end_date.isoformat()}'",
             ],
         }
-    elif "customer" in question and "core.customers" in selected_tables:
+    elif _is_customer_count_question(question) and "core.customers" in selected_tables:
         candidate = {
             "candidate_id": "candidate_1",
             "sql": "SELECT COUNT(*) AS customer_count FROM core.customers AS c",
@@ -136,18 +136,28 @@ def _generate_with_llm(
     state: SQLAgentState,
     llm_provider: LLMProviderProtocol | None,
     trace_writer: TraceWriter | None,
-) -> dict | None:
+) -> list[dict]:
     if llm_provider is None:
-        return None
+        return []
 
     try:
-        candidate = llm_provider.generate_sql_candidate(
-            question=state.get("question", ""),
-            question_analysis=state.get("question_analysis", {}),
-            schema_context=state.get("schema_context", []),
-            selected_tables=state.get("selected_tables", []),
-            retrieved_context=state.get("retrieved_context", []),
-        )
+        if hasattr(llm_provider, "generate_sql_candidates"):
+            candidates = llm_provider.generate_sql_candidates(
+                question=state.get("question", ""),
+                question_analysis=state.get("question_analysis", {}),
+                schema_context=state.get("schema_context", []),
+                selected_tables=state.get("selected_tables", []),
+                retrieved_context=state.get("retrieved_context", []),
+            )
+        else:
+            candidate = llm_provider.generate_sql_candidate(
+                question=state.get("question", ""),
+                question_analysis=state.get("question_analysis", {}),
+                schema_context=state.get("schema_context", []),
+                selected_tables=state.get("selected_tables", []),
+                retrieved_context=state.get("retrieved_context", []),
+            )
+            candidates = [candidate] if candidate else []
     except TypeError as exc:
         if "retrieved_context" not in str(exc):
             raise
@@ -158,22 +168,24 @@ def _generate_with_llm(
             schema_context=state.get("schema_context", []),
             selected_tables=state.get("selected_tables", []),
         )
+        candidates = [candidate] if candidate else []
     except Exception as exc:
         if trace_writer:
             trace_writer.write("llm_generate_sql_error", {"error": str(exc)})
-        return None
+        return []
 
-    if candidate and trace_writer:
+    normalized_candidates = [candidate for candidate in candidates or [] if candidate]
+    if normalized_candidates and trace_writer:
         trace_writer.write(
             "llm_generate_sql",
             {
                 "question": state.get("question", ""),
                 "selected_tables": state.get("selected_tables", []),
                 "retrieved_context": state.get("retrieved_context", []),
-                "candidate": candidate,
+                "candidates": normalized_candidates,
             },
         )
-    return candidate
+    return normalized_candidates
 
 
 def _coerce_date(value: str | date | None) -> date:
@@ -226,7 +238,15 @@ def _extract_explicit_date_range(question: str) -> tuple[date, date] | None:
 
 
 def _is_refund_customer_count_question(question: str) -> bool:
+    refund_terms = ["refund", "refunded", "returned", "returns"]
     return (
         "customer" in question
-        and any(term in question for term in ["refund", "refunded", "return", "returned"])
+        and any(term in question for term in refund_terms)
+    )
+
+
+def _is_customer_count_question(question: str) -> bool:
+    return (
+        "customer" in question
+        and any(phrase in question for phrase in ["how many", "number of", "count"])
     )

@@ -151,7 +151,7 @@ def load_manual_context_entries(docs_dir: Path) -> list[dict[str, Any]]:
             continue
         entries.append(
             {
-                "type": "semantic_doc",
+                "type": _manual_context_type(path.stem),
                 "name": path.stem,
                 "content": text,
                 "score": 1.0,
@@ -161,6 +161,19 @@ def load_manual_context_entries(docs_dir: Path) -> list[dict[str, Any]]:
             }
         )
     return entries
+
+
+def _manual_context_type(name: str) -> str:
+    lowered = name.lower()
+    if "metric" in lowered:
+        return "metric_definition"
+    if "output" in lowered or "contract" in lowered:
+        return "output_contract"
+    if "fewshot" in lowered or "example" in lowered:
+        return "fewshot_example"
+    if "translation" in lowered or "mapping" in lowered:
+        return "schema_translation"
+    return "semantic_doc"
 
 
 def filter_context_by_allowed_tables(

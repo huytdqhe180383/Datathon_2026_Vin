@@ -1,0 +1,20 @@
+{
+  "question_index": 12,
+  "question": "Which zip code generated the highest delivered net revenue, and what was the amount?",
+  "ground_truth_answer": "{\n    \"question_index\":  12,\n    \"question\":  \"Which zip code generated the highest delivered net revenue, and what was the amount?\",\n    \"sql_query\":  \"SELECT o.zip, ROUND(SUM(oi.quantity * oi.unit_price - oi.discount_amount), 2) AS delivered_net_revenue FROM orders o JOIN order_items oi USING (order_id) WHERE o.order_status = \\u0027delivered\\u0027 GROUP BY 1 ORDER BY 2 DESC, 1 LIMIT 1\",\n    \"ground_truth_answer\":  \"{\\\"zip\\\": \\\"90250\\\", \\\"delivered_net_revenue\\\": \\\"12709851.96\\\"}\",\n    \"run1\":  {\n                 \"agent_answer\":  \"The zip code 90250 generated the highest delivered net revenue, with a net revenue amount of 12709851.96.\",\n                 \"agent_citation\":  \"\",\n                 \"auto_mismatch\":  \"no\",\n                 \"citation_error\":  \"yes\",\n                 \"auto_notes\":  \"OK\",\n                 \"reviewed_mismatch\":  \"no\",\n                 \"review_notes\":  \"OK\"\n             },\n    \"run2\":  {\n                 \"agent_answer\":  \"Zip code 90250 generated the highest delivered net revenue, amounting to 12709851.96. Citation: [data/processed/orders.csv:zip,order_status; data/processed/order_items.csv:order_id,quantity,unit_price,discount_amount].\",\n                 \"agent_citation\":  \"[data/processed/orders.csv:zip,order_status; data/processed/order_items.csv:order_id,quantity,unit_price,discount_amount].\",\n                 \"auto_mismatch\":  \"no\",\n                 \"citation_error\":  \"no\",\n                 \"auto_notes\":  \"OK\",\n                 \"reviewed_mismatch\":  \"no\",\n                 \"review_notes\":  \"OK\"\n             }\n}\n",
+  "pandas_correct": true,
+  "pandas_latency_seconds": 5.651713,
+  "sql_rag_correct": true,
+  "sql_rag_reason": "match",
+  "sql_rag_latency_seconds": 30.719923,
+  "sql_rag_rows": [
+    {
+      "shipping_zip_code": "90250",
+      "net_revenue": 12709851.96
+    }
+  ],
+  "sql_rag_candidate_sql": [
+    "SELECT o.shipping_zip_code, SUM((oi.unit_price * oi.quantity - oi.discount_amount) - COALESCE(r.refund, 0)) AS net_revenue FROM core.orders o JOIN core.order_items oi ON o.order_id = oi.order_id LEFT JOIN (SELECT order_item_id, SUM(refund_amount) AS refund FROM core.returns GROUP BY order_item_id) r ON oi.order_item_id = r.order_item_id WHERE o.order_status = 'delivered' GROUP BY o.shipping_zip_code ORDER BY net_revenue DESC LIMIT 1"
+  ],
+  "sql_rag_final_answer": "**Direct answer:** The zip code **90250** generated the highest **delivered net revenue**, with **$12,709,851.96**.\n\n**Calculation basis:** For each delivered order item, net revenue was computed as:  \n\\[\n(\\text{unit\\_price} \\times \\text{quantity} - \\text{discount\\_amount}) - \\text{refund\\_amount}\n\\]\nRefunds were taken as the summed refund amount per `order_item_id` (using `COALESCE(refund, 0)` when no refund exists). These values were then **summed by `shipping_zip_code`**.\n\n**Tables used:**\n- `core.orders` (aliased `o`)\n- `core.order_items` (aliased `oi`)\n- `core.returns` (subquery aggregated by `order_item_id`, aliased `r`)\n\n**Filters applied:**\n- `o.order_status = 'delivered'`\n\n**Caveat:** This result is based on the query’s definition of “delivered net revenue” (including refunds from `core.returns`) and only considers orders with status exactly **'delivered'**."
+}

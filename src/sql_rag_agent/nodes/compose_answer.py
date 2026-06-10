@@ -13,7 +13,7 @@ def compose_answer(
     llm_provider: LLMProviderProtocol | None = None,
     trace_writer: TraceWriter | None = None,
 ) -> SQLAgentState:
-    result = _first_successful_result(state.get("execution_results", []))
+    result = _ranked_successful_result(state)
     selected_tables = state.get("selected_tables", [])
     candidate = _candidate_for_result(state.get("validated_sql", []), result)
 
@@ -62,7 +62,7 @@ def compose_answer(
         "final_answer": final_answer,
         "confidence": confidence,
         "ground_truth": ground_truth,
-        "ranked_results": [],
+        "ranked_results": state.get("ranked_results", []),
     }
 
 
@@ -123,6 +123,20 @@ def _first_successful_result(results: list[dict[str, Any]]) -> dict[str, Any] | 
         if result.get("error") is None:
             return result
     return None
+
+
+def _ranked_successful_result(state: SQLAgentState) -> dict[str, Any] | None:
+    execution_results = state.get("execution_results", [])
+    results_by_candidate = {
+        result.get("candidate_id"): result
+        for result in execution_results
+        if result.get("error") is None
+    }
+    for ranked in state.get("ranked_results", []):
+        result = results_by_candidate.get(ranked.get("candidate_id"))
+        if result is not None:
+            return result
+    return _first_successful_result(execution_results)
 
 
 def _candidate_for_result(

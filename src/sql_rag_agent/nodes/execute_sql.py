@@ -33,7 +33,7 @@ def execute_sql(
             try:
                 rows = tool.execute_sql(
                     current_candidate["sql"],
-                    limit=DEFAULT_ROW_LIMIT,
+                    limit=_row_limit_for_state(state),
                     statement_timeout_ms=DEFAULT_STATEMENT_TIMEOUT_MS,
                 )
                 execution_results.append(
@@ -181,3 +181,11 @@ def _repair_sql_candidate(
             },
         )
     return repaired
+
+
+def _row_limit_for_state(state: SQLAgentState) -> int:
+    analysis = state.get("question_analysis", {})
+    question = state.get("question", "").lower()
+    if analysis.get("expected_answer_type") == "table" or question.startswith("return a table"):
+        return 1000
+    return DEFAULT_ROW_LIMIT
