@@ -1,0 +1,44 @@
+{
+  "reference_shape": [
+    25,
+    4
+  ],
+  "agent_shape": [
+    25,
+    4
+  ],
+  "reference_columns": [
+    "age_group",
+    "payment_method",
+    "delivered_orders",
+    "avg_delivered_order_value"
+  ],
+  "agent_columns": [
+    "age_group",
+    "payment_method",
+    "delivered_orders",
+    "avg_delivered_order_value"
+  ],
+  "match": false,
+  "reason": "value_mismatch",
+  "unordered_match": true,
+  "unordered_reason": "exact_after_normalization",
+  "ordering_only_mismatch": true,
+  "classification": "ordering_only",
+  "question": "Return a table of delivered average order value by age_group and payment_method, with columns age_group, payment_method, delivered_orders, and avg_delivered_order_value.",
+  "latency_seconds": 27.547575,
+  "status": "ok",
+  "sql_query": "WITH order_values AS (\n  SELECT o.order_id, c.age_group, p.payment_method, SUM(p.payment_value) AS order_total\n  FROM core.orders o\n  JOIN core.customers c ON o.customer_id = c.customer_id\n  JOIN core.payments p ON o.order_id = p.order_id\n  WHERE o.order_status = 'delivered'\n  GROUP BY o.order_id, c.age_group, p.payment_method\n)\nSELECT age_group, payment_method, COUNT(*) AS delivered_orders, AVG(order_total) AS avg_delivered_order_value\nFROM order_values\nGROUP BY age_group, payment_method\nORDER BY age_group, payment_method",
+  "pandas_match": true,
+  "pandas_latency_seconds": 4.438824,
+  "pandas_sql_query": "WITH delivered_order_values AS (SELECT c.age_group, o.payment_method, o.order_id, SUM(oi.quantity * oi.unit_price - oi.discount_amount) AS delivered_order_net_value FROM customers c JOIN orders o USING (customer_id) JOIN order_items oi USING (order_id) WHERE o.order_status = 'delivered' GROUP BY 1, 2, 3) SELECT age_group, payment_method, COUNT(*) AS delivered_orders, ROUND(AVG(delivered_order_net_value), 2) AS avg_delivered_order_value FROM delivered_order_values GROUP BY 1, 2 ORDER BY age_group, avg_delivered_order_value DESC, payment_method",
+  "diff_preview": [
+    "DataFrame.iloc[:, 1] (column name=\"payment_method\") are different",
+    "",
+    "DataFrame.iloc[:, 1] (column name=\"payment_method\") values are different (88.0 %)",
+    "[index]: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24]",
+    "[left]:  [paypal, cod, credit_card, apple_pay, bank_transfer, paypal, cod, credit_card, bank_transfer, apple_pay, apple_pay, paypal, cod, credit_card, bank_transfer, bank_transfer, paypal, credit_card, cod, apple_pay, bank_transfer, cod, paypal, apple_pay, credit_card]",
+    "[right]: [apple_pay, bank_transfer, cod, credit_card, paypal, apple_pay, bank_transfer, cod, credit_card, paypal, apple_pay, bank_transfer, cod, credit_card, paypal, apple_pay, bank_transfer, cod, credit_card, paypal, apple_pay, bank_transfer, cod, credit_card, paypal]",
+    "At positional index 0, first diff: paypal != apple_pay"
+  ]
+}

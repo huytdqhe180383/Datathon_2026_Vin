@@ -15,6 +15,7 @@ class LLMConfig:
     base_url: str | None = None
     strong_model: str = "gpt-4o-mini"
     weak_model: str = "gpt-4o-mini"
+    request_timeout_seconds: float = 120.0
     enabled: bool = True
 
     @classmethod
@@ -40,6 +41,11 @@ class LLMConfig:
                 dotenv_config=dotenv_config,
                 primary_keys=("SQL_AGENT_LLM_WEAK_MODEL", "SQL_AGENT_ANSWER_LLM_MODEL", "OPENAI_MODEL"),
                 default="gpt-5.4-nano",
+            ),
+            request_timeout_seconds=float(
+                os.getenv("SQL_AGENT_LLM_TIMEOUT_SECONDS")
+                or dotenv_config.get("SQL_AGENT_LLM_TIMEOUT_SECONDS")
+                or "120"
             ),
             enabled=enabled_value.lower() not in {"0", "false", "no", "off"},
         )

@@ -234,6 +234,11 @@ class FakeLLMProvider:
         return "LLM answer: there are 121,930 customers in core.customers."
 
 
+class EmptySchemaRetriever:
+    def retrieve(self, *, question, allowed_tables=None):
+        return []
+
+
 def test_understand_question_detects_ranking_revenue_and_time_filter():
     state = understand_question(
         {"question": "Which product had the highest revenue last quarter?"}
@@ -343,6 +348,7 @@ def test_run_agent_executes_validated_query_and_composes_grounded_answer():
     state = run_agent(
         "Which product had the highest revenue last quarter?",
         mcp_tool=tool,
+        schema_retriever=EmptySchemaRetriever(),
         current_date="2026-06-04",
     )
 
@@ -362,6 +368,7 @@ def test_run_agent_counts_refunded_customers_within_explicit_date_range():
     state = run_agent(
         "How many customers refunded in 17/7/2017 - 17/8/2017",
         mcp_tool=tool,
+        schema_retriever=EmptySchemaRetriever(),
         current_date="2026-06-04",
     )
 
@@ -381,6 +388,7 @@ def test_run_agent_does_not_execute_fallback_sql_for_unsupported_question():
     state = run_agent(
         "hello",
         mcp_tool=tool,
+        schema_retriever=EmptySchemaRetriever(),
         current_date="2026-06-04",
     )
 
@@ -388,6 +396,21 @@ def test_run_agent_does_not_execute_fallback_sql_for_unsupported_question():
     assert state["candidate_sql"] == []
     assert "do not have enough information" in state["final_answer"]
     assert "646,945 rows" not in state["final_answer"]
+
+
+def test_return_table_command_does_not_trigger_refund_customer_fallback():
+    tool = FakePostgresMCPTool()
+
+    state = run_agent(
+        "Return a table showing repeat-customer performance by acquisition_channel.",
+        mcp_tool=tool,
+        schema_retriever=EmptySchemaRetriever(),
+        current_date="2026-06-04",
+    )
+
+    assert state["candidate_sql"] == []
+    assert tool.executed_sql == []
+    assert "unsupported_question" in [error.get("code") for error in state["errors"]]
 
 
 def test_run_agent_uses_llm_for_sql_generation_answer_composition_and_tracing(tmp_path):
@@ -399,6 +422,7 @@ def test_run_agent_uses_llm_for_sql_generation_answer_composition_and_tracing(tm
         "How many customers are there?",
         mcp_tool=tool,
         llm_provider=llm,
+        schema_retriever=EmptySchemaRetriever(),
         trace_writer=trace_writer,
         current_date="2026-06-04",
     )
@@ -448,6 +472,7 @@ def test_run_agent_retries_failed_sql_with_llm_repair(tmp_path):
         "How many customers are there?",
         mcp_tool=tool,
         llm_provider=llm,
+        schema_retriever=EmptySchemaRetriever(),
         trace_writer=trace_writer,
         current_date="2026-06-05",
     )
@@ -528,6 +553,7 @@ def test_run_agent_respects_allowed_tables_and_refuses_missing_required_tables()
     state = run_agent(
         "How many customers refunded in 17/7/2017 - 17/8/2017",
         mcp_tool=tool,
+        schema_retriever=EmptySchemaRetriever(),
         allowed_tables=["core.customers"],
         current_date="2026-06-05",
     )
@@ -568,3 +594,18 @@ def test_llm_config_loads_separate_strong_and_weak_models_from_dotenv(tmp_path, 
 
     assert config.strong_model == "gpt-5.3-codex"
     assert config.weak_model == "gpt-5.4-nano"
+
+
+def test_llm_config_loads_request_timeout_from_dotenv(tmp_path, monkeypatch):
+    env_file = tmp_path / ".env"
+    env_file.write_text(
+        "OPENAI_API_KEY=test-key\n"
+        "SQL_AGENT_LLM_TIMEOUT_SECONDS=45\n",
+        encoding="utf-8",
+    )
+
+    monkeypatch.delenv("SQL_AGENT_LLM_TIMEOUT_SECONDS", raising=False)
+
+    config = LLMConfig.from_env(env_file=env_file)
+
+    assert config.request_timeout_seconds == 45.0

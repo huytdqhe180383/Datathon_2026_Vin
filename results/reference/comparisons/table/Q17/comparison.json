@@ -1,0 +1,35 @@
+{
+  "reference_shape": [
+    42,
+    4
+  ],
+  "agent_shape": [
+    42,
+    4
+  ],
+  "reference_columns": [
+    "year_quarter",
+    "delivered_orders",
+    "delivered_units",
+    "delivered_net_revenue"
+  ],
+  "agent_columns": [
+    "year_quarter",
+    "delivered_orders",
+    "delivered_units",
+    "delivered_net_revenue"
+  ],
+  "match": true,
+  "reason": "exact_after_normalization",
+  "unordered_match": true,
+  "unordered_reason": "exact_after_normalization",
+  "ordering_only_mismatch": false,
+  "classification": "match",
+  "question": "Return a table of quarterly delivered performance, with columns year_quarter, delivered_orders, delivered_units, and delivered_net_revenue.",
+  "latency_seconds": 38.893346,
+  "status": "ok",
+  "sql_query": "WITH delivered_orders AS (\n  SELECT order_id, order_date\n  FROM core.orders\n  WHERE order_status = 'delivered'\n),\norder_units AS (\n  SELECT oi.order_id, SUM(oi.quantity) AS total_units\n  FROM core.order_items oi\n  JOIN delivered_orders d ON d.order_id = oi.order_id\n  GROUP BY oi.order_id\n),\norder_payments AS (\n  SELECT p.order_id, SUM(p.payment_value) AS total_payment\n  FROM core.payments p\n  JOIN delivered_orders d ON d.order_id = p.order_id\n  GROUP BY p.order_id\n),\norder_refunds AS (\n  SELECT oi.order_id, COALESCE(SUM(r.refund_amount), 0) AS total_refund\n  FROM core.order_items oi\n  JOIN delivered_orders d ON d.order_id = oi.order_id\n  LEFT JOIN core.returns r ON r.order_item_id = oi.order_item_id\n  GROUP BY oi.order_id\n)\nSELECT\n  TO_CHAR(d.order_date, 'YYYY-\"Q\"Q') AS year_quarter,\n  COUNT(DISTINCT d.order_id) AS delivered_orders,\n  COALESCE(SUM(ou.total_units), 0) AS delivered_units,\n  COALESCE(SUM(op.total_payment), 0) - COALESCE(SUM(or2.total_refund), 0) AS delivered_net_revenue\nFROM delivered_orders d\nLEFT JOIN order_units ou ON ou.order_id = d.order_id\nLEFT JOIN order_payments op ON op.order_id = d.order_id\nLEFT JOIN order_refunds or2 ON or2.order_id = d.order_id\nGROUP BY TO_CHAR(d.order_date, 'YYYY-\"Q\"Q')\nORDER BY year_quarter",
+  "pandas_match": false,
+  "pandas_latency_seconds": 10.397161,
+  "pandas_sql_query": "SELECT strftime(CAST(order_date AS DATE), '%Y') || '-Q' || CAST(quarter(CAST(order_date AS DATE)) AS VARCHAR) AS year_quarter, COUNT(DISTINCT o.order_id) AS delivered_orders, SUM(oi.quantity) AS delivered_units, ROUND(SUM(oi.quantity * oi.unit_price - oi.discount_amount), 2) AS delivered_net_revenue FROM orders o JOIN order_items oi USING (order_id) WHERE o.order_status = 'delivered' GROUP BY 1 ORDER BY 1"
+}

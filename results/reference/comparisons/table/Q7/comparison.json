@@ -1,0 +1,44 @@
+{
+  "reference_shape": [
+    6,
+    4
+  ],
+  "agent_shape": [
+    6,
+    4
+  ],
+  "reference_columns": [
+    "acquisition_channel",
+    "ordering_customers",
+    "repeat_customers",
+    "repeat_customer_rate_pct"
+  ],
+  "agent_columns": [
+    "acquisition_channel",
+    "ordering_customers",
+    "repeat_customers",
+    "repeat_customer_rate_pct"
+  ],
+  "match": false,
+  "reason": "value_mismatch",
+  "unordered_match": true,
+  "unordered_reason": "exact_after_normalization",
+  "ordering_only_mismatch": true,
+  "classification": "ordering_only",
+  "question": "Return a table showing repeat-customer performance by acquisition_channel, with columns acquisition_channel, ordering_customers, repeat_customers, and repeat_customer_rate_pct.",
+  "latency_seconds": 19.32257,
+  "status": "ok",
+  "sql_query": "WITH customer_orders AS (\n    SELECT\n        c.customer_id,\n        c.acquisition_channel,\n        COUNT(DISTINCT o.order_id) AS order_count\n    FROM core.customers AS c\n    JOIN core.orders AS o ON o.customer_id = c.customer_id\n    GROUP BY c.customer_id, c.acquisition_channel\n)\nSELECT\n    acquisition_channel,\n    COUNT(DISTINCT customer_id) AS ordering_customers,\n    COUNT(DISTINCT CASE WHEN order_count >= 2 THEN customer_id END) AS repeat_customers,\n    ROUND(\n        COUNT(DISTINCT CASE WHEN order_count >= 2 THEN customer_id END)::numeric\n        / NULLIF(COUNT(DISTINCT customer_id), 0) * 100,\n        2\n    ) AS repeat_customer_rate_pct\nFROM customer_orders\nGROUP BY acquisition_channel\nORDER BY acquisition_channel",
+  "pandas_match": true,
+  "pandas_latency_seconds": 6.466066,
+  "pandas_sql_query": "WITH customer_orders AS (SELECT c.acquisition_channel, o.customer_id, COUNT(*) AS order_count FROM customers c JOIN orders o USING (customer_id) GROUP BY 1, 2) SELECT acquisition_channel, COUNT(*) AS ordering_customers, SUM(CASE WHEN order_count > 1 THEN 1 ELSE 0 END) AS repeat_customers, ROUND(100.0 * SUM(CASE WHEN order_count > 1 THEN 1 ELSE 0 END) / COUNT(*), 4) AS repeat_customer_rate_pct FROM customer_orders GROUP BY 1 ORDER BY repeat_customer_rate_pct DESC, acquisition_channel",
+  "diff_preview": [
+    "DataFrame.iloc[:, 0] (column name=\"acquisition_channel\") are different",
+    "",
+    "DataFrame.iloc[:, 0] (column name=\"acquisition_channel\") values are different (83.33333 %)",
+    "[index]: [0, 1, 2, 3, 4, 5]",
+    "[left]:  [social_media, organic_search, referral, paid_search, direct, email_campaign]",
+    "[right]: [direct, email_campaign, organic_search, paid_search, referral, social_media]",
+    "At positional index 0, first diff: social_media != direct"
+  ]
+}

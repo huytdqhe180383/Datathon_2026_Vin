@@ -1,0 +1,20 @@
+{
+  "question_index": 19,
+  "question": "Which order source has the lowest delivered rate, and what is that rate?",
+  "ground_truth_answer": "{\n    \"question_index\":  19,\n    \"question\":  \"Which order source has the lowest delivered rate, and what is that rate?\",\n    \"sql_query\":  \"SELECT order_source, ROUND(100.0 * AVG(CASE WHEN order_status = \\u0027delivered\\u0027 THEN 1.0 ELSE 0.0 END), 4) AS delivered_rate_pct FROM orders GROUP BY 1 ORDER BY 2 ASC, 1 LIMIT 1\",\n    \"ground_truth_answer\":  \"{\\\"order_source\\\": \\\"direct\\\", \\\"delivered_rate_pct\\\": \\\"79.6655\\\"}\",\n    \"run1\":  {\n                 \"agent_answer\":  \"The order source with the lowest delivered rate is \\u0027direct\\u0027, with a delivered rate of 0.7967.\",\n                 \"agent_citation\":  \"\",\n                 \"auto_mismatch\":  \"yes\",\n                 \"citation_error\":  \"yes\",\n                 \"auto_notes\":  \"delivered_rate_pct: expected one of [79.665, 79.6655, 79.67, 79.7, 80.0]\",\n                 \"reviewed_mismatch\":  \"yes\",\n                 \"review_notes\":  \"delivered_rate_pct: expected one of [79.665, 79.6655, 79.67, 79.7, 80.0]\"\n             },\n    \"run2\":  {\n                 \"agent_answer\":  \"direct has the lowest delivered rate at 79.67%. Citation: [data/processed/orders.csv::order_source,order_status]\",\n                 \"agent_citation\":  \"[data/processed/orders.csv::order_source,order_status]\",\n                 \"auto_mismatch\":  \"no\",\n                 \"citation_error\":  \"no\",\n                 \"auto_notes\":  \"OK\",\n                 \"reviewed_mismatch\":  \"no\",\n                 \"review_notes\":  \"OK\"\n             }\n}\n",
+  "pandas_correct": true,
+  "pandas_latency_seconds": 4.616758,
+  "sql_rag_correct": false,
+  "sql_rag_reason": "missing_or_mismatched:delivered_rate_pct",
+  "sql_rag_latency_seconds": 18.281844,
+  "sql_rag_rows": [
+    {
+      "order_source": "direct",
+      "delivered_rate": 0.7966545398548632
+    }
+  ],
+  "sql_rag_candidate_sql": [
+    "SELECT o.order_source, COUNT(*) FILTER (WHERE o.order_status = 'delivered')::numeric / COUNT(*) AS delivered_rate FROM core.orders AS o GROUP BY o.order_source ORDER BY delivered_rate ASC LIMIT 1"
+  ],
+  "sql_rag_final_answer": "**Direct answer:** The **direct** order source has the **lowest delivered rate**, at **0.7966545398548632**.\n\n**Calculation basis:** For each `order_source`, the delivered rate is computed as:  \n- **delivered_rate = (number of orders with `order_status = 'delivered'`) / (total number of orders)**\n\nThis is done using `COUNT(*) FILTER (WHERE o.order_status = 'delivered') / COUNT(*)`, then sorting by the resulting rate ascending and taking the lowest.\n\n**Tables used:** `core.orders` (aliased as `o`)  \n*(Although the payload lists additional tables, the provided SQL query only references `core.orders`.)*\n\n**Filters applied:** None beyond the conditional inside the delivered-rate calculation (`order_status = 'delivered'`).\n\n**Caveat:** This rate is based on **all rows in `core.orders`** grouped by `order_source` and uses the literal status value **`'delivered'`**; it does not incorporate returns, payments, or other business logic unless those are reflected in `core.orders.order_status`."
+}

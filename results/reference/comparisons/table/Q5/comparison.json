@@ -1,0 +1,32 @@
+{
+  "reference_shape": [
+    5,
+    6
+  ],
+  "agent_shape": [
+    0,
+    0
+  ],
+  "reference_columns": [
+    "age_group",
+    "customers",
+    "customers_with_delivered_orders",
+    "delivered_orders",
+    "delivered_net_revenue",
+    "avg_delivered_revenue_per_active_customer"
+  ],
+  "agent_columns": [],
+  "match": false,
+  "reason": "column_mismatch",
+  "unordered_match": false,
+  "unordered_reason": "column_mismatch",
+  "ordering_only_mismatch": false,
+  "classification": "column_mismatch",
+  "question": "Return a table summarizing customer activity by age_group, with columns age_group, customers, customers_with_delivered_orders, delivered_orders, delivered_net_revenue, and avg_delivered_revenue_per_active_customer.",
+  "latency_seconds": 27.612726,
+  "status": "ok",
+  "sql_query": "WITH delivered_orders AS (\n  SELECT o.order_id, o.customer_id\n  FROM core.orders o\n  WHERE o.order_status = 'delivered'\n),\norder_payments AS (\n  SELECT do.order_id, SUM(p.payment_value) AS total_payment\n  FROM delivered_orders do\n  JOIN core.payments p ON do.order_id = p.order_id\n  GROUP BY do.order_id\n),\norder_refunds AS (\n  SELECT do.order_id, COALESCE(SUM(r.refund_amount), 0) AS total_refund\n  FROM delivered_orders do\n  JOIN core.order_items oi ON do.order_id = oi.order_id\n  JOIN core.returns r ON oi.order_item_id = r.order_item_id\n  GROUP BY do.order_id\n),\norder_net AS (\n  SELECT op.order_id,\n         op.total_payment - COALESCE(ort.total_refund, 0) AS net_revenue\n  FROM order_payments op\n  LEFT JOIN order_refunds ort ON op.order_id = ort.order_id\n)\nSELECT \n  c.age_group,\n  COUNT(DISTINCT c.customer_id) AS customers,\n  COUNT(DISTINCT do.customer_id) AS customers_with_delivered_orders,\n  COUNT(DISTINCT do.order_id) AS delivered_orders,\n  COALESCE(SUM(onr.net_revenue), 0) AS delivered_net_revenue,\n  CASE \n    WHEN COUNT(DISTINCT do.customer_id) > 0 \n    THEN COALESCE(SUM(onr.net_revenue), 0) / COUNT(DISTINCT do.customer_id)::numeric\n    ELSE 0 \n  END AS avg_delivered_revenue_per_active_customer\nFROM core.customers c\nLEFT JOIN delivered_orders do ON c.customer_id = do.customer_id\nLEFT JOIN order_net onr ON do.order_id = onr.order_id\nGROUP BY c.age_group\nORDER BY c.age_group",
+  "pandas_match": true,
+  "pandas_latency_seconds": 5.538182,
+  "pandas_sql_query": "WITH customer_delivered_revenue AS (SELECT c.customer_id, c.age_group, COUNT(DISTINCT o.order_id) FILTER (WHERE o.order_status = 'delivered') AS delivered_orders, SUM(CASE WHEN o.order_status = 'delivered' THEN oi.quantity * oi.unit_price - oi.discount_amount ELSE 0 END) AS delivered_net_revenue FROM customers c LEFT JOIN orders o USING (customer_id) LEFT JOIN order_items oi USING (order_id) GROUP BY 1, 2) SELECT age_group, COUNT(*) AS customers, SUM(CASE WHEN delivered_orders > 0 THEN 1 ELSE 0 END) AS customers_with_delivered_orders, SUM(delivered_orders) AS delivered_orders, ROUND(SUM(COALESCE(delivered_net_revenue, 0)), 2) AS delivered_net_revenue, ROUND(AVG(CASE WHEN delivered_orders > 0 THEN delivered_net_revenue END), 2) AS avg_delivered_revenue_per_active_customer FROM customer_delivered_revenue GROUP BY 1 ORDER BY delivered_net_revenue DESC, age_group"
+}

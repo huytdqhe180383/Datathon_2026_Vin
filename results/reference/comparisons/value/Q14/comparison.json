@@ -1,0 +1,20 @@
+{
+  "question_index": 14,
+  "question": "Which device type has the highest discount rate, and what is that rate?",
+  "ground_truth_answer": "{\n    \"question_index\":  14,\n    \"question\":  \"Which device type has the highest discount rate, and what is that rate?\",\n    \"sql_query\":  \"SELECT o.device_type, ROUND(100.0 * SUM(oi.discount_amount) / SUM(oi.quantity * oi.unit_price), 4) AS discount_rate_pct FROM orders o JOIN order_items oi USING (order_id) GROUP BY 1 ORDER BY 2 DESC, 1 LIMIT 1\",\n    \"ground_truth_answer\":  \"{\\\"device_type\\\": \\\"tablet\\\", \\\"discount_rate_pct\\\": \\\"4.6077\\\"}\",\n    \"run1\":  {\n                 \"agent_answer\":  \"The device type with the highest discount rate is tablet, with a rate of 0.0461. Citation: [data/processed/orders.csv::device_type,order_id; data/processed/order_items.csv::discount_amount,unit_price,quantity,order_id]\",\n                 \"agent_citation\":  \"[data/processed/orders.csv::device_type,order_id; data/processed/order_items.csv::discount_amount,unit_price,quantity,order_id]\",\n                 \"auto_mismatch\":  \"yes\",\n                 \"citation_error\":  \"no\",\n                 \"auto_notes\":  \"discount_rate_pct: expected one of [4.6, 4.6077, 4.608, 4.61, 5.0]\",\n                 \"reviewed_mismatch\":  \"yes\",\n                 \"review_notes\":  \"discount_rate_pct: expected one of [4.6, 4.6077, 4.608, 4.61, 5.0]\"\n             },\n    \"run2\":  {\n                 \"agent_answer\":  \"The device type with the highest discount rate is tablet, with a rate of 4.61%. Citation: [data/processed/orders.csv::device_type,order_id, data/processed/order_items.csv::order_id,discount_amount,unit_price,quantity].\",\n                 \"agent_citation\":  \"[data/processed/orders.csv::device_type,order_id, data/processed/order_items.csv::order_id,discount_amount,unit_price,quantity].\",\n                 \"auto_mismatch\":  \"no\",\n                 \"citation_error\":  \"no\",\n                 \"auto_notes\":  \"OK\",\n                 \"reviewed_mismatch\":  \"no\",\n                 \"review_notes\":  \"OK\"\n             }\n}\n",
+  "pandas_correct": true,
+  "pandas_latency_seconds": 4.400298,
+  "sql_rag_correct": false,
+  "sql_rag_reason": "missing_or_mismatched:discount_rate_pct",
+  "sql_rag_latency_seconds": 20.462945,
+  "sql_rag_rows": [
+    {
+      "device_type": "tablet",
+      "discount_rate": 0.046077362014220476
+    }
+  ],
+  "sql_rag_candidate_sql": [
+    "SELECT o.device_type,\n       SUM(oi.discount_amount) / NULLIF(SUM(oi.unit_price * oi.quantity), 0) AS discount_rate\nFROM core.orders AS o\nJOIN core.order_items AS oi ON oi.order_id = o.order_id\nGROUP BY o.device_type\nORDER BY discount_rate DESC\nLIMIT 1"
+  ],
+  "sql_rag_final_answer": "The device type with the highest discount rate is **tablet**, at **0.0461** (about **4.61%**).\n\n**Calculation basis:**  \nDiscount rate was computed as:\n\n\\[\n\\frac{\\sum(\\text{discount\\_amount})}{\\sum(\\text{unit\\_price} \\times \\text{quantity})}\n\\]\n\n**Tables used:**  \n- `core.orders` for `device_type`\n- `core.order_items` for `discount_amount`, `unit_price`, and `quantity`\n\n**Filters applied:**  \n- No explicit filters were applied.\n- Results were grouped by `device_type`, sorted by discount rate descending, and limited to the top row.\n\n**Caveat:**  \nThis is based on the available joined order and item rows, and the rate is a ratio of aggregated totals rather than an average of per-item discount rates."
+}

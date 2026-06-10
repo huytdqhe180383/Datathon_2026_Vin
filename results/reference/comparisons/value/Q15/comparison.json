@@ -1,0 +1,19 @@
+{
+  "question_index": 15,
+  "question": "What is the delivered weighted average selling price per unit after discounts?",
+  "ground_truth_answer": "{\n    \"question_index\":  15,\n    \"question\":  \"What is the delivered weighted average selling price per unit after discounts?\",\n    \"sql_query\":  \"SELECT ROUND(SUM(oi.quantity * oi.unit_price - oi.discount_amount) / SUM(oi.quantity), 4) AS delivered_weighted_avg_selling_price_per_unit FROM orders o JOIN order_items oi USING (order_id) WHERE o.order_status = \\u0027delivered\\u0027\",\n    \"ground_truth_answer\":  \"{\\\"delivered_weighted_avg_selling_price_per_unit\\\": \\\"4878.6116\\\"}\",\n    \"run1\":  {\n                 \"agent_answer\":  \"The delivered weighted average selling price per unit after discounts is 3792.9720, computed as the total (unit_price - discount_amount) weighted by quantity over delivered orders. Citation: [data/processed/orders.csv::order_status, data/processed/order_items.csv::unit_price, data/processed/order_items.csv::discount_amount, data/processed/order_items.csv::quantity].\",\n                 \"agent_citation\":  \"[data/processed/orders.csv::order_status, data/processed/order_items.csv::unit_price, data/processed/order_items.csv::discount_amount, data/processed/order_items.csv::quantity].\",\n                 \"auto_mismatch\":  \"yes\",\n                 \"citation_error\":  \"no\",\n                 \"auto_notes\":  \"delivered_weighted_avg_selling_price_per_unit: expected one of [4878.6, 4878.61, 4878.6116, 4878.612, 4879.0]\",\n                 \"reviewed_mismatch\":  \"yes\",\n                 \"review_notes\":  \"delivered_weighted_avg_selling_price_per_unit: expected one of [4878.6, 4878.61, 4878.6116, 4878.612, 4879.0]\"\n             },\n    \"run2\":  {\n                 \"agent_answer\":  \"The delivered weighted average selling price per unit after discounts is 3792.9720.\",\n                 \"agent_citation\":  \"\",\n                 \"auto_mismatch\":  \"yes\",\n                 \"citation_error\":  \"yes\",\n                 \"auto_notes\":  \"delivered_weighted_avg_selling_price_per_unit: expected one of [4878.6, 4878.61, 4878.6116, 4878.612, 4879.0]\",\n                 \"reviewed_mismatch\":  \"yes\",\n                 \"review_notes\":  \"delivered_weighted_avg_selling_price_per_unit: expected one of [4878.6, 4878.61, 4878.6116, 4878.612, 4879.0]\"\n             }\n}\n",
+  "pandas_correct": false,
+  "pandas_latency_seconds": 7.940412,
+  "sql_rag_correct": true,
+  "sql_rag_reason": "match",
+  "sql_rag_latency_seconds": 15.995506,
+  "sql_rag_rows": [
+    {
+      "delivered_weighted_avg_price_per_unit": 4878.611636794457
+    }
+  ],
+  "sql_rag_candidate_sql": [
+    "SELECT SUM((oi.unit_price * oi.quantity) - COALESCE(oi.discount_amount, 0)) / NULLIF(SUM(oi.quantity), 0) AS delivered_weighted_avg_price_per_unit FROM core.order_items AS oi JOIN core.orders AS o ON oi.order_id = o.order_id WHERE o.order_status = 'delivered'"
+  ],
+  "sql_rag_final_answer": "**Direct answer:** The delivered weighted average selling price per unit after discounts is **4878.611636794457**.\n\n**Calculation basis:**  \n\\[\n\\text{Weighted Avg Price per Unit}=\n\\frac{\\sum\\left((\\text{unit\\_price} \\times \\text{quantity})-\\text{discount\\_amount}\\right)}\n{\\sum(\\text{quantity})}\n\\]\n- Discounts are applied as: \\((\\text{unit\\_price} \\times \\text{quantity}) - \\text{COALESCE}(\\text{discount\\_amount}, 0)\\)\n- The result divides by total quantity, using **NULLIF** to avoid division by zero.\n\n**Tables used:** `core.order_items` (aliased `oi`), `core.orders` (aliased `o`)\n\n**Filters applied:**  \n- `o.order_status = 'delivered'`\n\n**Caveat:** This is computed from **order items** for orders marked **delivered**; it reflects **unit_price and discount_amount** as stored in `core.order_items` and does not incorporate any other adjustments unless they are represented in those fields."
+}

@@ -1,0 +1,11 @@
+customer_id,acquisition_channel,age_group,order_count,lifetime_net_revenue
+13699,direct,25-34,77,3282175.5
+13698,social_media,35-44,73,3080752.75
+13701,social_media,35-44,66,2848229.86
+139815,social_media,35-44,68,2841225.49
+139814,social_media,25-34,73,2783698.67
+13697,direct,35-44,74,2780854.22
+13700,organic_search,18-24,61,2693147.81
+139816,social_media,18-24,69,2623253.48
+139813,paid_search,25-34,69,2503025.5
+139812,organic_search,25-34,58,2300899.14

@@ -1,0 +1,19 @@
+{
+  "question_index": 21,
+  "question": "What percentage of customers never placed an order?",
+  "ground_truth_answer": "{\n    \"question_index\":  21,\n    \"question\":  \"What percentage of customers never placed an order?\",\n    \"sql_query\":  \"SELECT ROUND(100.0 * SUM(CASE WHEN o.customer_id IS NULL THEN 1 ELSE 0 END) / COUNT(*), 4) AS customers_without_orders_pct FROM customers c LEFT JOIN (SELECT DISTINCT customer_id FROM orders) o USING (customer_id)\",\n    \"ground_truth_answer\":  \"{\\\"customers_without_orders_pct\\\": \\\"25.9854\\\"}\",\n    \"run1\":  {\n                 \"agent_answer\":  \"25.99% of customers never placed an order. Citation: [data/processed/customers.csv::customer_id, data/processed/orders.csv::customer_id].\",\n                 \"agent_citation\":  \"[data/processed/customers.csv::customer_id, data/processed/orders.csv::customer_id].\",\n                 \"auto_mismatch\":  \"no\",\n                 \"citation_error\":  \"no\",\n                 \"auto_notes\":  \"OK\",\n                 \"reviewed_mismatch\":  \"no\",\n                 \"review_notes\":  \"OK\"\n             },\n    \"run2\":  {\n                 \"agent_answer\":  \"25.99% of customers never placed an order. Citation: [data/processed/customers.csv::customer_id], [data/processed/orders.csv::customer_id].\",\n                 \"agent_citation\":  \"[data/processed/customers.csv::customer_id], [data/processed/orders.csv::customer_id].\",\n                 \"auto_mismatch\":  \"no\",\n                 \"citation_error\":  \"no\",\n                 \"auto_notes\":  \"OK\",\n                 \"reviewed_mismatch\":  \"no\",\n                 \"review_notes\":  \"OK\"\n             }\n}\n",
+  "pandas_correct": true,
+  "pandas_latency_seconds": 6.650134,
+  "sql_rag_correct": true,
+  "sql_rag_reason": "match",
+  "sql_rag_latency_seconds": 17.330901,
+  "sql_rag_rows": [
+    {
+      "percentage": 25.985401459854014
+    }
+  ],
+  "sql_rag_candidate_sql": [
+    "SELECT ((SELECT COUNT(*) FROM core.customers AS c WHERE NOT EXISTS (SELECT 1 FROM core.orders AS o WHERE o.customer_id = c.customer_id)) * 100.0 / (SELECT COUNT(*) FROM core.customers)) AS percentage"
+  ],
+  "sql_rag_final_answer": "About **25.99%** of customers never placed an order.\n\n**Calculation basis**\n- Numerator: customers for whom **no matching order exists** in `core.orders`\n- Denominator: **all customers** in `core.customers`\n- Formula used: `count(customers with no orders) / total customers * 100`\n\n**Tables used**\n- `core.customers`\n- `core.orders`\n\n**Filters applied**\n- No time filter was applied, since the question did not specify a date range.\n\n**Caveat**\n- This result depends on the completeness of the customer and order records in the source tables."
+}

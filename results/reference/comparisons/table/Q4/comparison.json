@@ -1,0 +1,53 @@
+{
+  "reference_shape": [
+    15,
+    4
+  ],
+  "agent_shape": [
+    15,
+    4
+  ],
+  "reference_columns": [
+    "zip",
+    "delivered_orders",
+    "delivered_net_revenue",
+    "avg_delivered_order_value"
+  ],
+  "agent_columns": [
+    "zip",
+    "delivered_orders",
+    "delivered_net_revenue",
+    "avg_delivered_order_value"
+  ],
+  "match": false,
+  "reason": "value_mismatch",
+  "unordered_match": false,
+  "unordered_reason": "value_mismatch",
+  "ordering_only_mismatch": false,
+  "classification": "value_mismatch",
+  "question": "Return a table with the top 15 zip codes by delivered net revenue, including columns zip, delivered_orders, delivered_net_revenue, and avg_delivered_order_value.",
+  "latency_seconds": 29.498916,
+  "status": "ok",
+  "sql_query": "SELECT o.shipping_zip_code AS zip,\n       COUNT(DISTINCT o.order_id) AS delivered_orders,\n       SUM(COALESCE(oi.unit_price * oi.quantity - COALESCE(oi.discount_amount, 0), 0)) - COALESCE(SUM(r.refund_amount), 0) AS delivered_net_revenue,\n       (SUM(COALESCE(oi.unit_price * oi.quantity - COALESCE(oi.discount_amount, 0), 0)) - COALESCE(SUM(r.refund_amount), 0)) / NULLIF(COUNT(DISTINCT o.order_id), 0) AS avg_delivered_order_value\nFROM core.orders AS o\nJOIN core.order_items AS oi ON oi.order_id = o.order_id\nLEFT JOIN core.returns AS r ON r.order_item_id = oi.order_item_id\nWHERE o.order_status = 'delivered'\nGROUP BY o.shipping_zip_code\nORDER BY delivered_net_revenue DESC\nLIMIT 15",
+  "pandas_match": true,
+  "pandas_latency_seconds": 5.236742,
+  "pandas_sql_query": "WITH delivered_order_values AS (SELECT o.order_id, o.zip, SUM(oi.quantity * oi.unit_price - oi.discount_amount) AS delivered_order_net_value FROM orders o JOIN order_items oi USING (order_id) WHERE o.order_status = 'delivered' GROUP BY 1, 2) SELECT zip, COUNT(*) AS delivered_orders, ROUND(SUM(delivered_order_net_value), 2) AS delivered_net_revenue, ROUND(AVG(delivered_order_net_value), 2) AS avg_delivered_order_value FROM delivered_order_values GROUP BY 1 ORDER BY delivered_net_revenue DESC, zip LIMIT 15",
+  "diff_preview": [
+    "DataFrame.iloc[:, 0] (column name=\"zip\") are different",
+    "",
+    "DataFrame.iloc[:, 0] (column name=\"zip\") values are different (100.0 %)",
+    "[index]: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]",
+    "[left]:  [90250, 12225, 93065, 92592, 32174, 33166, 59405, 28540, 37042, 95687, 95630, 93536, 92882, 44460, 57702]",
+    "[right]: [90250, 12225, 93065, 92592, 32174, 33166, 59405, 28540, 37042, 95687, 95630, 93536, 92882, 44460, 57702]",
+    "At positional index 0, first diff: 90250 != 90250"
+  ],
+  "unordered_diff_preview": [
+    "DataFrame.iloc[:, 0] (column name=\"zip\") are different",
+    "",
+    "DataFrame.iloc[:, 0] (column name=\"zip\") values are different (100.0 %)",
+    "[index]: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]",
+    "[left]:  [12225, 28540, 32174, 33166, 37042, 44460, 57702, 59405, 90250, 92592, 92882, 93065, 93536, 95630, 95687]",
+    "[right]: [12225, 28540, 32174, 33166, 37042, 44460, 57702, 59405, 90250, 92592, 92882, 93065, 93536, 95630, 95687]",
+    "At positional index 0, first diff: 12225 != 12225"
+  ]
+}

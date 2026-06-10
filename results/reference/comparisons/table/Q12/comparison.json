@@ -1,0 +1,35 @@
+{
+  "reference_shape": [
+    126,
+    4
+  ],
+  "agent_shape": [
+    100,
+    4
+  ],
+  "reference_columns": [
+    "order_month",
+    "new_ordering_customers",
+    "repeat_ordering_customers",
+    "total_orders"
+  ],
+  "agent_columns": [
+    "order_month",
+    "new_ordering_customers",
+    "repeat_ordering_customers",
+    "total_orders"
+  ],
+  "match": false,
+  "reason": "shape_mismatch",
+  "unordered_match": false,
+  "unordered_reason": "shape_mismatch",
+  "ordering_only_mismatch": false,
+  "classification": "shape_mismatch",
+  "question": "Return a table showing monthly new versus repeat ordering customers, with columns order_month, new_ordering_customers, repeat_ordering_customers, and total_orders.",
+  "latency_seconds": 55.024182,
+  "status": "ok",
+  "sql_query": "WITH customer_first_order AS (\n    SELECT\n        customer_id,\n        DATE_TRUNC('month', MIN(order_date)) AS first_order_month\n    FROM core.orders\n    GROUP BY customer_id\n)\nSELECT\n    DATE_TRUNC('month', o.order_date) AS order_month,\n    COUNT(DISTINCT CASE WHEN cfo.first_order_month = DATE_TRUNC('month', o.order_date) THEN o.customer_id END) AS new_ordering_customers,\n    COUNT(DISTINCT CASE WHEN cfo.first_order_month < DATE_TRUNC('month', o.order_date) THEN o.customer_id END) AS repeat_ordering_customers,\n    COUNT(*) AS total_orders\nFROM core.orders AS o\nJOIN customer_first_order AS cfo ON o.customer_id = cfo.customer_id\nGROUP BY DATE_TRUNC('month', o.order_date)\nORDER BY order_month",
+  "pandas_match": false,
+  "pandas_latency_seconds": 5.811932,
+  "pandas_sql_query": "WITH monthly_customer_orders AS (SELECT strftime(CAST(order_date AS DATE), '%Y-%m') AS order_month, customer_id, COUNT(*) AS orders_in_month FROM orders GROUP BY 1, 2), customer_first_month AS (SELECT customer_id, MIN(strftime(CAST(order_date AS DATE), '%Y-%m')) AS first_order_month FROM orders GROUP BY 1) SELECT m.order_month, SUM(CASE WHEN m.order_month = f.first_order_month THEN 1 ELSE 0 END) AS new_ordering_customers, SUM(CASE WHEN m.order_month > f.first_order_month THEN 1 ELSE 0 END) AS repeat_ordering_customers, SUM(m.orders_in_month) AS total_orders FROM monthly_customer_orders m JOIN customer_first_month f USING (customer_id) GROUP BY 1 ORDER BY 1"
+}

@@ -1,0 +1,132 @@
+{
+  "value-Q7": {
+    "label": "ambiguous_reference_or_prompt",
+    "summary": "The agent treated return rate as returns-table coverage and returned a fraction, while the benchmark defines it from `order_status = 'returned'` and expects a percent column.",
+    "evidence": "Reference expects `payment_method = cod, return_rate_pct = 8.9159`; the rerun output kept `cod` but returned `return_rate = 0.0890`."
+  },
+  "value-Q8": {
+    "label": "metric_definition_drift",
+    "summary": "The agent used discount amount as the promo flag and computed net revenue with refunds, instead of the benchmark's promo-code fields and item-net revenue definition.",
+    "evidence": "Reference uses `promo_id` / `promo_id_2` and item-net revenue; rerun output returned a fractional promo share from a different revenue basis."
+  },
+  "value-Q9": {
+    "label": "metric_definition_drift",
+    "summary": "Lifetime net revenue drifted from item-net revenue to payments minus refunds, which shifts the customer-level aggregate.",
+    "evidence": "Benchmark answer is `262677.13`; rerun output was `254133.35` from a payments-refunds definition."
+  },
+  "value-Q10": {
+    "label": "output_contract_mismatch",
+    "summary": "The winning month and revenue were effectively correct, but the output contract drifted to timestamp month labels and different column names.",
+    "evidence": "Reference expects `order_month = 2016-05`; rerun returned `calendar_month = 2016-05-01 00:00:00+07:00`."
+  },
+  "value-Q14": {
+    "label": "output_contract_mismatch",
+    "summary": "The agent found the same device and ratio but emitted a fraction and alternate alias instead of the benchmark's percent-scale contract.",
+    "evidence": "Reference expects `discount_rate_pct = 4.6077`; rerun returned `discount_rate = 0.04607736`."
+  },
+  "value-Q16": {
+    "label": "metric_definition_drift",
+    "summary": "Repeat-customer rate was diluted by including non-ordering customers in the denominator instead of only customers who actually ordered.",
+    "evidence": "Benchmark winner is `social_media` at `75.6749`; rerun switched the winner to `direct` at `56.01`."
+  },
+  "value-Q17": {
+    "label": "metric_definition_drift",
+    "summary": "First-order net value was reduced by subtracting refunds, but the benchmark defines it from order-item net revenue only.",
+    "evidence": "Benchmark answer is `23887.21`; rerun returned `23017.69`."
+  },
+  "value-Q18": {
+    "label": "metric_definition_drift",
+    "summary": "Top-decile share drifted on both the revenue basis and the top-10% selection method.",
+    "evidence": "Benchmark uses exact top-customer count from item-net revenue; rerun used payments-refunds plus `NTILE(10)` and returned `48.43` instead of `39.9840`."
+  },
+  "value-Q19": {
+    "label": "output_contract_mismatch",
+    "summary": "The lowest delivered-rate source matched, but the benchmark expects percent-scale output and a specific alias.",
+    "evidence": "Reference expects `delivered_rate_pct = 79.6655`; rerun returned `delivered_rate = 0.7966545`."
+  },
+  "value-Q25": {
+    "label": "categorical_value_mismatch",
+    "summary": "The agent used the wrong categorical casing for gender, which zeroed out the female-share calculation.",
+    "evidence": "Benchmark answer is `48.9795`; rerun returned `0.0` after filtering on a mismatched `gender` value."
+  },
+  "value-Q26": {
+    "label": "output_contract_mismatch",
+    "summary": "The zip code and average value matched the benchmark, but the required delivered-order count column and benchmark aliases were omitted.",
+    "evidence": "Reference requires `zip`, `delivered_order_count`, and `avg_order_value`; rerun omitted the count column."
+  },
+  "value-Q29": {
+    "label": "ambiguous_reference_or_prompt",
+    "summary": "Returned quantity was interpreted from the returns table rather than from orders with `order_status = 'returned'`.",
+    "evidence": "Benchmark answer is `5.5833`; rerun returned `5.57` from a related but different returned-order definition."
+  },
+  "value-Q30": {
+    "label": "metric_definition_drift",
+    "summary": "Median lifetime net revenue inherited the same payments-minus-refunds drift instead of the benchmark's item-net revenue definition.",
+    "evidence": "Benchmark answer is `256623.08`; rerun returned `248171.905`."
+  },
+  "table-Q1": {
+    "label": "metric_definition_drift",
+    "summary": "Delivered channel revenue drifted because the agent subtracted refunds from delivered item-net revenue, which lowers every channel total and average order value.",
+    "evidence": "The rebuilt comparison shows matching columns and rows, but every `delivered_net_revenue` value is slightly lower than the benchmark reference."
+  },
+  "table-Q2": {
+    "label": "output_contract_mismatch",
+    "summary": "The monthly table was semantically close, but the benchmark expects `YYYY-MM` labels and normalized numeric formatting.",
+    "evidence": "Reference month labels are `2016-01` style; rerun used date-style month values like `2016-01-01`."
+  },
+  "table-Q4": {
+    "label": "output_contract_mismatch",
+    "summary": "The top zip-code table appears close on the benchmark metric, but formatting and normalization differences still broke frame equality.",
+    "evidence": "Reference and rerun previews align on the top zip codes, while the comparison still reports a value mismatch."
+  },
+  "table-Q5": {
+    "label": "timeout_or_execution_issue",
+    "summary": "The customer-activity table never materialized into a usable result, and the underlying SQL also drifted toward payments-minus-refunds logic.",
+    "evidence": "Comparison artifact has `agent_shape = [0, 0]` against the benchmark table."
+  },
+  "table-Q9": {
+    "label": "metric_definition_drift",
+    "summary": "Promo bucketing drifted from promo-code fields to discount amount, and revenue drifted from item-net revenue to payments minus refunds.",
+    "evidence": "Reference buckets are `used_promo` and `no_promo`; rerun used different labels and lower revenues from a different definition."
+  },
+  "table-Q10": {
+    "label": "metric_definition_drift",
+    "summary": "Average unit price was interpreted as realized revenue per delivered unit instead of simple average `unit_price` on delivered rows.",
+    "evidence": "Delivered units and revenue are close, but `avg_unit_price` is systematically lower than the benchmark."
+  },
+  "table-Q11": {
+    "label": "row_limit_truncation",
+    "summary": "The cohort table was truncated by the 100-row execution cap before it could match the 132-row benchmark output.",
+    "evidence": "Reference has 132 rows; the rerun artifact stops at 100 rows and also formats months as full dates."
+  },
+  "table-Q12": {
+    "label": "row_limit_truncation",
+    "summary": "The monthly new-versus-repeat table hit the same 100-row cap, so the exported output is incomplete.",
+    "evidence": "Reference has 126 rows; rerun output is capped at 100 rows with timestamp-style month labels."
+  },
+  "table-Q13": {
+    "label": "categorical_value_mismatch",
+    "summary": "Delivered revenue by gender and device type appears close numerically, but categorical casing drifted from the benchmark contract.",
+    "evidence": "Benchmark uses lowercase gender values; rerun followed title-cased values from the normalized core tables."
+  },
+  "table-Q15": {
+    "label": "metric_definition_drift",
+    "summary": "Top-customer ranking drifted because lifetime net revenue was computed from payments minus refunds instead of item-net revenue.",
+    "evidence": "Benchmark top customer revenue is `3503583.41`; rerun returned `3282175.50`."
+  },
+  "table-Q18": {
+    "label": "timeout_or_execution_issue",
+    "summary": "The loyalty-metrics table did not survive execution cleanly, and the SQL also drifted on zip source, sorting, and precision.",
+    "evidence": "Comparison artifact has no usable rows even though the benchmark expects a populated zip-level table."
+  },
+  "table-Q19": {
+    "label": "metric_definition_drift",
+    "summary": "The unit buckets were invented incorrectly, which changes the row definitions even if later aggregations are internally consistent.",
+    "evidence": "Benchmark buckets are `1`, `2-3`, `4-6`, `7-10`, `11+`; rerun used `4-5` and `6-10` instead."
+  },
+  "table-Q20": {
+    "label": "metric_definition_drift",
+    "summary": "Promo adoption drifted to `discount_amount > 0`, and the table also inherited row truncation and month-format mismatches.",
+    "evidence": "Benchmark uses promo-code fields for promo adoption and expects the full 126-row monthly series."
+  }
+}

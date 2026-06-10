@@ -1,0 +1,19 @@
+{
+  "question_index": 20,
+  "question": "What is the average number of distinct purchase months for repeat customers?",
+  "ground_truth_answer": "{\n    \"question_index\":  20,\n    \"question\":  \"What is the average number of distinct purchase months for repeat customers?\",\n    \"sql_query\":  \"WITH customer_months AS (SELECT customer_id, COUNT(DISTINCT strftime(CAST(order_date AS DATE), \\u0027%Y-%m\\u0027)) AS distinct_purchase_months, COUNT(*) AS order_count FROM orders GROUP BY 1) SELECT ROUND(AVG(distinct_purchase_months), 4) AS avg_distinct_purchase_months_repeat_customers FROM customer_months WHERE order_count \\u003e= 2\",\n    \"ground_truth_answer\":  \"{\\\"avg_distinct_purchase_months_repeat_customers\\\": \\\"8.3169\\\"}\",\n    \"run1\":  {\n                 \"agent_answer\":  \"The average number of distinct purchase months for repeat customers is 8.32. Citation: [data/processed/orders.csv::customer_id,order_date].\",\n                 \"agent_citation\":  \"[data/processed/orders.csv::customer_id,order_date].\",\n                 \"auto_mismatch\":  \"no\",\n                 \"citation_error\":  \"no\",\n                 \"auto_notes\":  \"OK\",\n                 \"reviewed_mismatch\":  \"no\",\n                 \"review_notes\":  \"OK\"\n             },\n    \"run2\":  {\n                 \"agent_answer\":  \"The average number of distinct purchase months for repeat customers is 8.32. Citation: [data/processed/orders.csv::customer_id,order_date]\",\n                 \"agent_citation\":  \"[data/processed/orders.csv::customer_id,order_date]\",\n                 \"auto_mismatch\":  \"no\",\n                 \"citation_error\":  \"no\",\n                 \"auto_notes\":  \"OK\",\n                 \"reviewed_mismatch\":  \"no\",\n                 \"review_notes\":  \"OK\"\n             }\n}\n",
+  "pandas_correct": true,
+  "pandas_latency_seconds": 12.904081,
+  "sql_rag_correct": true,
+  "sql_rag_reason": "match",
+  "sql_rag_latency_seconds": 17.688951,
+  "sql_rag_rows": [
+    {
+      "avg_distinct_purchase_months": 8.316904312986095
+    }
+  ],
+  "sql_rag_candidate_sql": [
+    "WITH customer_months AS (\n  SELECT o.customer_id,\n         COUNT(DISTINCT DATE_TRUNC('month', o.order_date)) AS distinct_months\n  FROM core.orders o\n  GROUP BY o.customer_id\n  HAVING COUNT(o.order_id) >= 2\n)\nSELECT AVG(distinct_months) AS avg_distinct_purchase_months\nFROM customer_months"
+  ],
+  "sql_rag_final_answer": "**Direct answer:** The average number of distinct purchase months for repeat customers is **8.316904312986095**.\n\n**Calculation basis:**  \n- First, identify **repeat customers** as customers with **at least 2 orders** (`HAVING COUNT(o.order_id) >= 2`).  \n- For each repeat customer, compute the number of **distinct calendar months** in which they purchased, using `COUNT(DISTINCT DATE_TRUNC('month', o.order_date))`.  \n- Finally, take the **average** of those per-customer distinct-month counts across all repeat customers.\n\n**Tables used:**  \n- `core.orders` (used to derive `customer_id`, `order_id`, and `order_date`)\n\n**Filters applied:**  \n- No additional filters (e.g., no date range) were applied beyond the repeat-customer rule (`COUNT(o.order_id) >= 2`).\n\n**Caveat:**  \n- “Repeat customers” is operationalized strictly as customers with **2+ orders**, and “purchase months” are based on the **month of `order_date`** (calendar months via `DATE_TRUNC('month', ...)`)."
+}

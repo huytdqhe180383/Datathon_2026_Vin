@@ -1,0 +1,53 @@
+{
+  "reference_shape": [
+    9,
+    4
+  ],
+  "agent_shape": [
+    9,
+    4
+  ],
+  "reference_columns": [
+    "gender",
+    "device_type",
+    "delivered_orders",
+    "delivered_net_revenue"
+  ],
+  "agent_columns": [
+    "gender",
+    "device_type",
+    "delivered_orders",
+    "delivered_net_revenue"
+  ],
+  "match": false,
+  "reason": "value_mismatch",
+  "unordered_match": false,
+  "unordered_reason": "value_mismatch",
+  "ordering_only_mismatch": false,
+  "classification": "value_mismatch",
+  "question": "Return a table of delivered net revenue by gender and device_type, with columns gender, device_type, delivered_orders, and delivered_net_revenue.",
+  "latency_seconds": 25.196995,
+  "status": "ok",
+  "sql_query": "SELECT c.gender, o.device_type, COUNT(DISTINCT o.order_id) AS delivered_orders, SUM(COALESCE(p.payment_sum, 0) - COALESCE(r.refund_sum, 0)) AS delivered_net_revenue FROM core.orders o JOIN core.customers c ON o.customer_id = c.customer_id LEFT JOIN (SELECT order_id, SUM(payment_value) AS payment_sum FROM core.payments GROUP BY order_id) p ON o.order_id = p.order_id LEFT JOIN (SELECT oi.order_id, SUM(r.refund_amount) AS refund_sum FROM core.returns r JOIN core.order_items oi ON r.order_item_id = oi.order_item_id GROUP BY oi.order_id) r ON o.order_id = r.order_id WHERE o.order_status = 'delivered' GROUP BY c.gender, o.device_type ORDER BY c.gender, o.device_type",
+  "pandas_match": true,
+  "pandas_latency_seconds": 5.215291,
+  "pandas_sql_query": "SELECT c.gender, o.device_type, COUNT(DISTINCT o.order_id) FILTER (WHERE o.order_status = 'delivered') AS delivered_orders, ROUND(SUM(CASE WHEN o.order_status = 'delivered' THEN oi.quantity * oi.unit_price - oi.discount_amount ELSE 0 END), 2) AS delivered_net_revenue FROM customers c JOIN orders o USING (customer_id) JOIN order_items oi USING (order_id) GROUP BY 1, 2 ORDER BY gender, delivered_net_revenue DESC, device_type",
+  "diff_preview": [
+    "DataFrame.iloc[:, 0] (column name=\"gender\") are different",
+    "",
+    "DataFrame.iloc[:, 0] (column name=\"gender\") values are different (100.0 %)",
+    "[index]: [0, 1, 2, 3, 4, 5, 6, 7, 8]",
+    "[left]:  [female, female, female, male, male, male, non-binary, non-binary, non-binary]",
+    "[right]: [Female, Female, Female, Male, Male, Male, Non-binary, Non-binary, Non-binary]",
+    "At positional index 0, first diff: female != Female"
+  ],
+  "unordered_diff_preview": [
+    "DataFrame.iloc[:, 0] (column name=\"gender\") are different",
+    "",
+    "DataFrame.iloc[:, 0] (column name=\"gender\") values are different (100.0 %)",
+    "[index]: [0, 1, 2, 3, 4, 5, 6, 7, 8]",
+    "[left]:  [female, female, female, male, male, male, non-binary, non-binary, non-binary]",
+    "[right]: [Female, Female, Female, Male, Male, Male, Non-binary, Non-binary, Non-binary]",
+    "At positional index 0, first diff: female != Female"
+  ]
+}

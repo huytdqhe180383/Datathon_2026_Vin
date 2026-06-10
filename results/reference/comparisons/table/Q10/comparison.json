@@ -1,0 +1,53 @@
+{
+  "reference_shape": [
+    20,
+    4
+  ],
+  "agent_shape": [
+    20,
+    4
+  ],
+  "reference_columns": [
+    "product_id",
+    "delivered_units",
+    "delivered_net_revenue",
+    "avg_unit_price"
+  ],
+  "agent_columns": [
+    "product_id",
+    "delivered_units",
+    "delivered_net_revenue",
+    "avg_unit_price"
+  ],
+  "match": false,
+  "reason": "value_mismatch",
+  "unordered_match": false,
+  "unordered_reason": "value_mismatch",
+  "ordering_only_mismatch": false,
+  "classification": "value_mismatch",
+  "question": "Return a table with the top 20 product_id values by delivered net revenue, including columns product_id, delivered_units, delivered_net_revenue, and avg_unit_price.",
+  "latency_seconds": 28.465121,
+  "status": "ok",
+  "sql_query": "SELECT oi.product_id,\n       SUM(oi.quantity) AS delivered_units,\n       SUM(oi.unit_price * oi.quantity - COALESCE(oi.discount_amount, 0)) AS delivered_net_revenue,\n       CASE WHEN SUM(oi.quantity) > 0\n            THEN SUM(oi.unit_price * oi.quantity - COALESCE(oi.discount_amount, 0)) / SUM(oi.quantity)\n            ELSE 0\n       END AS avg_unit_price\nFROM core.order_items AS oi\nJOIN core.orders AS o ON o.order_id = oi.order_id\nWHERE o.order_status = 'delivered'\nGROUP BY oi.product_id\nORDER BY delivered_net_revenue DESC\nLIMIT 20",
+  "pandas_match": false,
+  "pandas_latency_seconds": 5.845591,
+  "pandas_sql_query": "SELECT oi.product_id, SUM(CASE WHEN o.order_status = 'delivered' THEN oi.quantity ELSE 0 END) AS delivered_units, ROUND(SUM(CASE WHEN o.order_status = 'delivered' THEN oi.quantity * oi.unit_price - oi.discount_amount ELSE 0 END), 2) AS delivered_net_revenue, ROUND(AVG(CASE WHEN o.order_status = 'delivered' THEN oi.unit_price END), 2) AS avg_unit_price FROM order_items oi JOIN orders o USING (order_id) GROUP BY 1 HAVING SUM(CASE WHEN o.order_status = 'delivered' THEN oi.quantity ELSE 0 END) > 0 ORDER BY delivered_net_revenue DESC, product_id LIMIT 20",
+  "diff_preview": [
+    "DataFrame.iloc[:, 3] (column name=\"avg_unit_price\") are different",
+    "",
+    "DataFrame.iloc[:, 3] (column name=\"avg_unit_price\") values are different (100.0 %)",
+    "[index]: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]",
+    "[left]:  [11965.15, 10815.9, 11809.45, 11758.78, 10279.36, 5702.23, 14180.7, 5168.41, 10283.4, 5418.78, 11590.93, 5398.11, 6849.27, 6553.24, 9710.25, 10454.85, 10068.39, 6683.81, 6825.19, 10482.44]",
+    "[right]: [11407.0152, 10326.1311, 11297.0392, 11299.1709, 9841.0953, 5448.5817, 13562.6969, 4941.6318, 9881.6259, 5187.069, 11008.2725, 5162.8485, 6548.0028, 6263.1327, 9321.0024, 10043.3985, 9649.2653, 6369.0126, 6509.5185, 9964.7726]",
+    "At positional index 0, first diff: 11965.15 != 11407.0152"
+  ],
+  "unordered_diff_preview": [
+    "DataFrame.iloc[:, 3] (column name=\"avg_unit_price\") are different",
+    "",
+    "DataFrame.iloc[:, 3] (column name=\"avg_unit_price\") values are different (100.0 %)",
+    "[index]: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]",
+    "[left]:  [10283.4, 10815.9, 11590.93, 11758.78, 11965.15, 10279.36, 10482.44, 14180.7, 10454.85, 5702.23, 9710.25, 10068.39, 11809.45, 6825.19, 5398.11, 5168.41, 6553.24, 6683.81, 6849.27, 5418.78]",
+    "[right]: [9881.6259, 10326.1311, 11008.2725, 11299.1709, 11407.0152, 9841.0953, 9964.7726, 13562.6969, 10043.3985, 5448.5817, 9321.0024, 9649.2653, 11297.0392, 6509.5185, 5162.8485, 4941.6318, 6263.1327, 6369.0126, 6548.0028, 5187.069]",
+    "At positional index 0, first diff: 10283.4 != 9881.6259"
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "question_index": 2,
+  "question": "What percentage of ordering customers placed more than one order?",
+  "ground_truth_answer": "{\n    \"question_index\":  2,\n    \"question\":  \"What percentage of ordering customers placed more than one order?\",\n    \"sql_query\":  \"WITH customer_order_counts AS (SELECT customer_id, COUNT(*) AS order_count FROM orders GROUP BY 1) SELECT ROUND(100.0 * SUM(CASE WHEN order_count \\u003e 1 THEN 1 ELSE 0 END) / COUNT(*), 4) AS repeat_customer_rate_pct FROM customer_order_counts\",\n    \"ground_truth_answer\":  \"{\\\"repeat_customer_rate_pct\\\": \\\"75.2255\\\"}\",\n    \"run1\":  {\n                 \"agent_answer\":  \"75.23% of ordering customers placed more than one order. Citation: [data/processed/orders.csv::customer_id]\",\n                 \"agent_citation\":  \"[data/processed/orders.csv::customer_id]\",\n                 \"auto_mismatch\":  \"no\",\n                 \"citation_error\":  \"no\",\n                 \"auto_notes\":  \"OK\",\n                 \"reviewed_mismatch\":  \"no\",\n                 \"review_notes\":  \"OK\"\n             },\n    \"run2\":  {\n                 \"agent_answer\":  \"75.23% of ordering customers placed more than one order. Citation: [data/processed/orders.csv::customer_id,order_id]\",\n                 \"agent_citation\":  \"[data/processed/orders.csv::customer_id,order_id]\",\n                 \"auto_mismatch\":  \"no\",\n                 \"citation_error\":  \"no\",\n                 \"auto_notes\":  \"OK\",\n                 \"reviewed_mismatch\":  \"no\",\n                 \"review_notes\":  \"OK\"\n             }\n}\n",
+  "pandas_correct": true,
+  "pandas_latency_seconds": 5.283458,
+  "sql_rag_correct": true,
+  "sql_rag_reason": "match",
+  "sql_rag_latency_seconds": 15.599301,
+  "sql_rag_rows": [
+    {
+      "percentage_more_than_one_order": 75.22549475877047
+    }
+  ],
+  "sql_rag_candidate_sql": [
+    "WITH customer_order_counts AS (\n    SELECT o.customer_id, COUNT(o.order_id) AS order_count\n    FROM core.orders AS o\n    GROUP BY o.customer_id\n)\nSELECT \n    (COUNT(*) FILTER (WHERE order_count > 1) * 100.0 / NULLIF(COUNT(*), 0)) AS percentage_more_than_one_order\nFROM customer_order_counts"
+  ],
+  "sql_rag_final_answer": "**Direct answer:** **75.22549475877047%** of ordering customers placed **more than one order**.\n\n**Calculation basis:**  \n- First, the query counts orders per customer: `COUNT(o.order_id)` grouped by `o.customer_id`.  \n- Then it computes the percentage of those customers whose `order_count > 1` out of all customers in that grouped set (i.e., customers who appear in `core.orders`).\n\nFormally:  \n\\[\n\\frac{\\#(\\text{customers with } \\text{order\\_count} > 1)\\times 100.0}{\\#(\\text{customers with at least 1 order})}\n\\]\n\n**Tables used:**  \n- `core.orders` (via the CTE `customer_order_counts`)  \n- (Other tables were listed as selected tables, but the SQL provided only references `core.orders`.)\n\n**Filters applied:**  \n- None. There are no `WHERE` clauses; the only condition is the aggregation filter `order_count > 1` in the final `COUNT(*) FILTER (...)`.\n\n**Caveat:**  \n- This percentage is based on customers present in `core.orders` (customers with zero orders are not included)."
+}

@@ -1,0 +1,55 @@
+{
+  "reference_shape": [
+    10,
+    5
+  ],
+  "agent_shape": [
+    10,
+    5
+  ],
+  "reference_columns": [
+    "customer_id",
+    "acquisition_channel",
+    "age_group",
+    "order_count",
+    "lifetime_net_revenue"
+  ],
+  "agent_columns": [
+    "customer_id",
+    "acquisition_channel",
+    "age_group",
+    "order_count",
+    "lifetime_net_revenue"
+  ],
+  "match": false,
+  "reason": "value_mismatch",
+  "unordered_match": false,
+  "unordered_reason": "value_mismatch",
+  "ordering_only_mismatch": false,
+  "classification": "value_mismatch",
+  "question": "Return a table with the top 10 customers by lifetime net revenue, including columns customer_id, acquisition_channel, age_group, order_count, and lifetime_net_revenue.",
+  "latency_seconds": 31.917434,
+  "status": "ok",
+  "sql_query": "WITH customer_payments AS (\n    SELECT o.customer_id, COALESCE(SUM(p.payment_value), 0) AS total_payments\n    FROM core.orders o\n    LEFT JOIN core.payments p ON o.order_id = p.order_id\n    GROUP BY o.customer_id\n),\ncustomer_refunds AS (\n    SELECT o.customer_id, COALESCE(SUM(r.refund_amount), 0) AS total_refunds\n    FROM core.orders o\n    JOIN core.order_items oi ON o.order_id = oi.order_id\n    LEFT JOIN core.returns r ON oi.order_item_id = r.order_item_id\n    GROUP BY o.customer_id\n),\ncustomer_orders AS (\n    SELECT customer_id, COUNT(DISTINCT order_id) AS order_count\n    FROM core.orders\n    GROUP BY customer_id\n),\ncustomer_info AS (\n    SELECT customer_id, acquisition_channel, age_group\n    FROM core.customers\n)\nSELECT ci.customer_id, ci.acquisition_channel, ci.age_group,\n       COALESCE(co.order_count, 0) AS order_count,\n       (COALESCE(cp.total_payments, 0) - COALESCE(cr.total_refunds, 0)) AS lifetime_net_revenue\nFROM customer_info ci\nLEFT JOIN customer_payments cp ON ci.customer_id = cp.customer_id\nLEFT JOIN customer_refunds cr ON ci.customer_id = cr.customer_id\nLEFT JOIN customer_orders co ON ci.customer_id = co.customer_id\nORDER BY lifetime_net_revenue DESC\nLIMIT 10",
+  "pandas_match": true,
+  "pandas_latency_seconds": 4.864227,
+  "pandas_sql_query": "WITH customer_revenue AS (SELECT o.customer_id, COUNT(DISTINCT o.order_id) AS order_count, ROUND(SUM(oi.quantity * oi.unit_price - oi.discount_amount), 2) AS lifetime_net_revenue FROM orders o JOIN order_items oi USING (order_id) GROUP BY 1) SELECT r.customer_id, c.acquisition_channel, c.age_group, r.order_count, r.lifetime_net_revenue FROM customer_revenue r JOIN customers c USING (customer_id) ORDER BY r.lifetime_net_revenue DESC, r.customer_id LIMIT 10",
+  "diff_preview": [
+    "DataFrame.iloc[:, 0] (column name=\"customer_id\") are different",
+    "",
+    "DataFrame.iloc[:, 0] (column name=\"customer_id\") values are different (40.0 %)",
+    "[index]: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]",
+    "[left]:  [13699, 13698, 13701, 13697, 139815, 139814, 139816, 13700, 139813, 139812]",
+    "[right]: [13699, 13698, 13701, 139815, 139814, 13697, 13700, 139816, 139813, 139812]",
+    "At positional index 3, first diff: 13697 != 139815"
+  ],
+  "unordered_diff_preview": [
+    "DataFrame.iloc[:, 4] (column name=\"lifetime_net_revenue\") are different",
+    "",
+    "DataFrame.iloc[:, 4] (column name=\"lifetime_net_revenue\") values are different (90.0 %)",
+    "[index]: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]",
+    "[left]:  [2935844.94, 3169564.74, 3503583.41, 2693147.81, 2947856.94, 2380758.51, 2527949.98, 2861070.4, 2927151.39, 2697973.0]",
+    "[right]: [2780854.22, 3080752.75, 3282175.5, 2693147.81, 2848229.86, 2300899.14, 2503025.5, 2783698.67, 2841225.49, 2623253.48]",
+    "At positional index 0, first diff: 2935844.94 != 2780854.22"
+  ]
+}

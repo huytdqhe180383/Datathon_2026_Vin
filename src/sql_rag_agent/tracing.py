@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 from decimal import Decimal
 import json
 from pathlib import Path
@@ -39,6 +39,8 @@ class NullTraceWriter:
 def _json_safe(value):
     if isinstance(value, Decimal):
         return float(value)
+    if isinstance(value, (date, datetime)):
+        return value.isoformat()
     if isinstance(value, Path):
         return str(value)
     if isinstance(value, dict):

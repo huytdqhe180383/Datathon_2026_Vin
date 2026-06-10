@@ -117,7 +117,7 @@ Main files:
 
 Phase-2 graph:
 
-![SQL Agent Architecture](docs/images/sql_agent_architecture.png)
+![SQL Agent Architecture](docs/diagram/sql_agent_architecture.png)
 
 Node responsibilities:
 
@@ -139,6 +139,14 @@ The database is split into three schemas:
 - `core`: normalized relational model for joins and analytics.
 - `mart`: reporting-friendly aggregate tables.
 
+Core schema diagram:
+
+![PostgreSQL Schema](docs/diagram/schema_diagram.png)
+
+Reporting marts:
+
+The mart schema currently includes `mart.sales_daily` and `mart.web_traffic_daily`, providing aggregated reporting-ready analytics.
+
 Important SQL setup files:
 
 ```text
@@ -153,10 +161,28 @@ scripts/setup_postgres_local.ps1
 More detail:
 
 ```text
-docs/postgres-local-setup.md
-docs/schema-postgres-import-report.md
-docs/Pipeline plan.md
+docs/plan/postgres-local-setup.md
+docs/report/schema-postgres-import-report.md
+docs/plan/Pipeline plan.md
 ```
+
+## Evaluation Results
+
+The SQL-RAG vs PandasAI benchmark artifacts are saved in:
+
+```text
+results/
+```
+
+Current rechecked benchmark files:
+
+- `results/summary.md`: headline accuracy after table-order recheck.
+- `results/summary.json`: machine-readable headline metrics.
+- `results/sql_rag_vs_pandasai_20260608T043329Z.csv`: original row-level benchmark output.
+- `results/sql_rag_vs_pandasai_20260608T043329Z.json`: original row-level benchmark output with generated SQL and answers.
+- `results/mismatch_root_cause_summary.md`: detailed mismatch and root-cause review.
+- `results/value_output_comparison/`: per-question value-output comparisons.
+- `results/table_output_comparison/`: per-question table-output comparisons, including `reference_sql.csv`, `agent_output.csv`, and `comparison.json`.
 
 ## Load or Rebuild PostgreSQL
 

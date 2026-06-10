@@ -1,0 +1,19 @@
+{
+  "question_index": 13,
+  "question": "What percentage of delivered orders contained more than one distinct order-item line?",
+  "ground_truth_answer": "{\n    \"question_index\":  13,\n    \"question\":  \"What percentage of delivered orders contained more than one distinct order-item line?\",\n    \"sql_query\":  \"WITH delivered_order_line_counts AS (SELECT o.order_id, COUNT(*) AS line_count FROM orders o JOIN order_items oi USING (order_id) WHERE o.order_status = \\u0027delivered\\u0027 GROUP BY 1) SELECT ROUND(100.0 * AVG(CASE WHEN line_count \\u003e 1 THEN 1.0 ELSE 0.0 END), 4) AS multi_line_delivered_order_pct FROM delivered_order_line_counts\",\n    \"ground_truth_answer\":  \"{\\\"multi_line_delivered_order_pct\\\": \\\"10.2886\\\"}\",\n    \"run1\":  {\n                 \"agent_answer\":  \"Approximately 10.29% of delivered orders contained more than one distinct order-item line (i.e., more than one distinct order_item_id). Citation: [data/processed/orders.csv::order_status,data/processed/order_items.csv::order_item_id]\",\n                 \"agent_citation\":  \"[data/processed/orders.csv::order_status,data/processed/order_items.csv::order_item_id]\",\n                 \"auto_mismatch\":  \"no\",\n                 \"citation_error\":  \"no\",\n                 \"auto_notes\":  \"OK\",\n                 \"reviewed_mismatch\":  \"no\",\n                 \"review_notes\":  \"OK\"\n             },\n    \"run2\":  {\n                 \"agent_answer\":  \"Among delivered orders, 10.29% contained more than one distinct order-item line. Citation: [data/processed/orders.csv::order_status,orders.csv::order_id].\",\n                 \"agent_citation\":  \"[data/processed/orders.csv::order_status,orders.csv::order_id].\",\n                 \"auto_mismatch\":  \"no\",\n                 \"citation_error\":  \"no\",\n                 \"auto_notes\":  \"OK\",\n                 \"reviewed_mismatch\":  \"no\",\n                 \"review_notes\":  \"OK\"\n             }\n}\n",
+  "pandas_correct": true,
+  "pandas_latency_seconds": 7.43807,
+  "sql_rag_correct": true,
+  "sql_rag_reason": "match",
+  "sql_rag_latency_seconds": 18.205287,
+  "sql_rag_rows": [
+    {
+      "percentage": 10.29
+    }
+  ],
+  "sql_rag_candidate_sql": [
+    "WITH delivered_orders AS (\n    SELECT o.order_id\n    FROM core.orders o\n    WHERE o.order_status = 'delivered'\n),\norder_item_counts AS (\n    SELECT oi.order_id, COUNT(DISTINCT oi.order_item_id) AS item_count\n    FROM core.order_items oi\n    JOIN delivered_orders d ON oi.order_id = d.order_id\n    GROUP BY oi.order_id\n),\nmulti_item_orders AS (\n    SELECT order_id FROM order_item_counts WHERE item_count > 1\n)\nSELECT ROUND(\n    100.0 * (SELECT COUNT(*) FROM multi_item_orders) /\n    NULLIF((SELECT COUNT(*) FROM delivered_orders), 0),\n    2\n) AS percentage"
+  ],
+  "sql_rag_final_answer": "**Direct answer:** **10.29%** of delivered orders contained **more than one distinct order-item line**.\n\n**Calculation basis:**  \n- Identify **delivered orders** (`order_status = 'delivered'`).  \n- For each delivered order, count **distinct** `order_item_id` in `core.order_items`.  \n- Mark orders as **multi-item** when `COUNT(DISTINCT order_item_id) > 1`.  \n- Compute:  \n  \\[\n  100.0 \\times \\frac{\\#(\\text{delivered orders with } >1 \\text{ distinct order_item_id})}{\\#(\\text{delivered orders})}\n  \\]\n- The result was **rounded to 2 decimals**.\n\n**Tables used:**  \n- `core.orders` (to select delivered orders)  \n- `core.order_items` (to count distinct order-item lines)\n\n**Filters applied:**  \n- `core.orders.order_status = 'delivered'`  \n- Multi-item condition: `COUNT(DISTINCT oi.order_item_id) > 1`\n\n**Caveat:**  \n- This measures “more than one distinct order-item line” based on **distinct `order_item_id`**; it does not account for any other notion of line uniqueness beyond that field."
+}
